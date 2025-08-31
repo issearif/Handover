@@ -44,6 +44,7 @@ export default function AddPatientModal() {
       mrn: "",
       age: "",
       sex: undefined,
+      department: undefined,
       bed: "",
       diagnosis: "",
       doa: "",
@@ -182,22 +183,47 @@ export default function AddPatientModal() {
               />
               <FormField
                 control={form.control}
-                name="bed"
+                name="department"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bed *</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="e.g., IM-204A" 
-                        {...field} 
-                        data-testid="input-bed"
-                      />
-                    </FormControl>
+                    <FormLabel>Department *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-department">
+                          <SelectValue placeholder="Select ward" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="MW">Medical Ward (MW)</SelectItem>
+                        <SelectItem value="PVT">Private Ward (PVT)</SelectItem>
+                        <SelectItem value="GW">Gynecology Ward (GW)</SelectItem>
+                        <SelectItem value="SW">Surgical Ward (SW)</SelectItem>
+                        <SelectItem value="ER">Emergency Room (ER)</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
+            
+            <FormField
+              control={form.control}
+              name="bed"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bed Number *</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="e.g., 204A, 15B, etc." 
+                      {...field} 
+                      data-testid="input-bed"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <div className="grid grid-cols-2 gap-4">
               <FormField
