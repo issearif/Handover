@@ -1,4 +1,4 @@
-import { type Patient, type InsertPatient, type UpdatePatient, type User, type UpsertUser, users, patients } from "@shared/schema";
+import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, users, patients } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -15,7 +15,8 @@ export interface IStorage {
   cleanupExpiredPatients(): Promise<void>;
   // User operations for authentication
   getUser(id: string): Promise<User | undefined>;
-  upsertUser(user: UpsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
 }
 
 export class MemStorage implements IStorage {
@@ -122,17 +123,21 @@ export class MemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.username === username);
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
     const now = new Date();
     const user: User = {
-      id: userData.id || randomUUID(),
+      id: randomUUID(),
+      username: userData.username,
+      password: userData.password,
       email: userData.email || null,
       firstName: userData.firstName || null,
       lastName: userData.lastName || null,
-      profileImageUrl: userData.profileImageUrl || null,
       createdAt: now,
       updatedAt: now,
-      ...userData,
     };
     this.users.set(user.id, user);
     return user;
@@ -207,17 +212,15 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async upsertUser(userData: UpsertUser): Promise<User> {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(userData: InsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
       .values(userData)
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          ...userData,
-          updatedAt: new Date(),
-        },
-      })
       .returning();
     return user;
   }
