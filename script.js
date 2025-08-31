@@ -353,23 +353,22 @@ class PatientManager {
         patientCount.textContent = `${this.patients.length} Active`;
         
         if (this.patients.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="empty-message">No patients currently registered</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-message">No patients currently registered</td></tr>';
             return;
         }
         
         tbody.innerHTML = this.patients.map(patient => `
             <tr>
+                <td>${patient.bed}</td>
                 <td>
                     <div style="font-weight: 500; color: #1e293b;">${patient.name}</div>
                     <div style="font-size: 0.875rem; color: #64748b;">MRN: ${patient.mrn}</div>
                 </td>
                 <td>${patient.age}/${patient.sex}</td>
-                <td>${patient.bed}</td>
                 <td>
                     <div style="font-size: 0.875rem; color: #1e293b;">${patient.diagnosis}</div>
                     <div style="font-size: 0.75rem; color: #64748b;">DOA: ${patient.doa}</div>
                 </td>
-                <td><span class="status-badge status-${patient.status.toLowerCase()}">${patient.status}</span></td>
                 <td style="font-size: 0.75rem;">${patient.medications || 'None specified'}</td>
                 <td style="font-size: 0.75rem;">${patient.tasks || 'No pending tasks'}</td>
             </tr>
