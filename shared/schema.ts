@@ -34,7 +34,6 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
 
 export const updatePatientSchema = createInsertSchema(patients).omit({
   id: true,
-  mrn: true,
   isDeleted: true,
   deletedAt: true,
   createdAt: true,

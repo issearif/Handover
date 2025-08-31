@@ -126,10 +126,10 @@ export default function AddPatientModal() {
                 name="mrn"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>MRN *</FormLabel>
+                    <FormLabel>ID Number *</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Medical record number" 
+                        placeholder="Patient ID number" 
                         {...field} 
                         data-testid="input-mrn"
                       />
