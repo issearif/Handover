@@ -12,7 +12,7 @@ export const patients = pgTable("patients", {
   bed: text("bed").notNull(),
   diagnosis: text("diagnosis").notNull(),
   doa: text("doa").notNull(), // Date of admission
-  status: text("status").notNull(),
+  status: text("status").default("Stable"),
   medications: text("medications").default(""),
   tasks: text("tasks").default(""),
   notes: text("notes").default(""),
@@ -31,7 +31,6 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
 }).extend({
   age: z.string().min(1, "Age is required"),
   sex: z.enum(["M", "F", "O"], { required_error: "Sex is required" }),
-  status: z.enum(["Stable", "Critical", "Monitoring", "Discharge"], { required_error: "Status is required" }),
 });
 
 export const updatePatientSchema = createInsertSchema(patients).omit({
