@@ -34,7 +34,7 @@ export function setupAuth(app: Express) {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
+    createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
   });
@@ -123,6 +123,10 @@ export function setupAuth(app: Express) {
 }
 
 export function isAuthenticated(req: any, res: any, next: any) {
+  console.log("Auth check - isAuthenticated:", req.isAuthenticated());
+  console.log("Auth check - user:", req.user ? "exists" : "null");
+  console.log("Auth check - session:", req.session ? "exists" : "null");
+  
   if (req.isAuthenticated()) {
     return next();
   }
