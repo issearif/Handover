@@ -52,9 +52,6 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                   Diagnosis/DOA
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Meds
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -66,7 +63,7 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
               {patients.length === 0 ? (
                 <tr>
                   <td 
-                    colSpan={7} 
+                    colSpan={6} 
                     className="px-6 py-8 text-center text-muted-foreground"
                     data-testid="empty-patients-message"
                   >
@@ -101,17 +98,6 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                       <div className="text-xs text-muted-foreground" data-testid={`doa-${patient.id}`}>
                         DOA: {patient.doa}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span 
-                        className={cn(
-                          "inline-flex px-2 py-1 text-xs font-medium rounded-full",
-                          getStatusClassName(patient.status)
-                        )}
-                        data-testid={`status-${patient.id}`}
-                      >
-                        {patient.status}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-foreground" data-testid={`medications-${patient.id}`}>
                       {patient.medications || "None specified"}
