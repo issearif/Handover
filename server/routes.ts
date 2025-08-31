@@ -2,10 +2,26 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPatientSchema, updatePatientSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Get all active patients
-  app.get("/api/patients", async (req, res) => {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
+
+  // Get all active patients (protected)
+  app.get("/api/patients", isAuthenticated, async (req, res) => {
     try {
       const patients = await storage.getPatients();
       res.json(patients);
@@ -15,8 +31,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get archived patients
-  app.get("/api/patients/archived", async (req, res) => {
+  // Get archived patients (protected)
+  app.get("/api/patients/archived", isAuthenticated, async (req, res) => {
     try {
       const archivedPatients = await storage.getArchivedPatients();
       res.json(archivedPatients);
@@ -26,8 +42,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get specific patient
-  app.get("/api/patients/:id", async (req, res) => {
+  // Get specific patient (protected)
+  app.get("/api/patients/:id", isAuthenticated, async (req, res) => {
     try {
       const patient = await storage.getPatient(req.params.id);
       if (!patient) {
@@ -40,8 +56,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new patient
-  app.post("/api/patients", async (req, res) => {
+  // Create new patient (protected)
+  app.post("/api/patients", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertPatientSchema.parse(req.body);
       const patient = await storage.createPatient(validatedData);
@@ -58,8 +74,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update patient
-  app.patch("/api/patients/:id", async (req, res) => {
+  // Update patient (protected)
+  app.patch("/api/patients/:id", isAuthenticated, async (req, res) => {
     try {
       const validatedData = updatePatientSchema.parse(req.body);
       const patient = await storage.updatePatient(req.params.id, validatedData);
@@ -79,8 +95,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Soft delete patient
-  app.delete("/api/patients/:id", async (req, res) => {
+  // Soft delete patient (protected)
+  app.delete("/api/patients/:id", isAuthenticated, async (req, res) => {
     try {
       const success = await storage.deletePatient(req.params.id);
       if (!success) {
@@ -93,8 +109,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Restore patient from archive
-  app.post("/api/patients/:id/restore", async (req, res) => {
+  // Restore patient from archive (protected)
+  app.post("/api/patients/:id/restore", isAuthenticated, async (req, res) => {
     try {
       const success = await storage.restorePatient(req.params.id);
       if (!success) {
@@ -107,8 +123,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Permanently delete patient
-  app.delete("/api/patients/:id/permanent", async (req, res) => {
+  // Permanently delete patient (protected)
+  app.delete("/api/patients/:id/permanent", isAuthenticated, async (req, res) => {
     try {
       const success = await storage.permanentlyDeletePatient(req.params.id);
       if (!success) {

@@ -1,10 +1,13 @@
-import { Clock, Hospital, Archive } from "lucide-react";
+import { Clock, Hospital, Archive, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Header() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [location] = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -57,6 +60,22 @@ export default function Header() {
               <Clock className="mr-1 inline h-4 w-4" />
               <span>{formatDateTime(currentTime)}</span>
             </div>
+            {user && (
+              <div className="flex items-center space-x-3">
+                <div className="text-sm text-muted-foreground">
+                  Welcome, {user.firstName || user.email}
+                </div>
+                <Button 
+                  onClick={() => window.location.href = '/api/logout'}
+                  variant="ghost"
+                  size="sm"
+                  data-testid="logout-button"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
