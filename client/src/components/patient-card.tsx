@@ -32,6 +32,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   
   // Editable fields state
   const [name, setName] = useState(patient.name || "");
+  const [mrn, setMrn] = useState(patient.mrn || "");
   const [age, setAge] = useState(patient.age || "");
   const [sex, setSex] = useState(patient.sex || "");
   const [bed, setBed] = useState(patient.bed || "");
@@ -88,6 +89,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   const handleSave = () => {
     updateMutation.mutate({
       name,
+      mrn,
       age,
       sex,
       bed,
@@ -103,6 +105,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   const handleCancel = () => {
     // Reset all fields to original values
     setName(patient.name || "");
+    setMrn(patient.mrn || "");
     setAge(patient.age || "");
     setSex(patient.sex || "");
     setBed(patient.bed || "");
@@ -160,21 +163,22 @@ export default function PatientCard({ patient }: PatientCardProps) {
               )}
             </div>
             
-            {/* MRN */}
+            {/* ID Number */}
             <div className="mb-3">
               {isEditing ? (
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">MRN:</span>
+                  <span className="text-sm text-muted-foreground">ID Number:</span>
                   <Input
-                    value={patient.mrn}
-                    disabled
+                    value={mrn}
+                    onChange={(e) => setMrn(e.target.value)}
                     className="text-sm flex-1"
+                    placeholder="ID Number"
                     data-testid={`input-edit-mrn-${patient.id}`}
                   />
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground" data-testid={`patient-mrn-${patient.id}`}>
-                  MRN: {patient.mrn}
+                  ID Number: {patient.mrn}
                 </p>
               )}
             </div>
@@ -261,26 +265,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               </div>
             </div>
             
-            <div className="mt-3 flex items-center justify-between">
-              <Button
-                onClick={toggleEdit}
-                variant="ghost"
-                size="sm"
-                className="text-xs"
-                data-testid={`button-edit-${patient.id}`}
-              >
-                {isEditing ? (
-                  <>
-                    <X className="mr-1 h-3 w-3" />
-                    Cancel
-                  </>
-                ) : (
-                  <>
-                    <Edit className="mr-1 h-3 w-3" />
-                    Edit
-                  </>
-                )}
-              </Button>
+            <div className="mt-3 flex items-center justify-end">
               <ChevronDown 
                 className={cn(
                   "text-muted-foreground transition-transform h-4 w-4",
@@ -346,24 +331,34 @@ export default function PatientCard({ patient }: PatientCardProps) {
           
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <div className="flex space-x-2">
-              <Button 
-                onClick={handleSave}
-                disabled={updateMutation.isPending}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                data-testid={`button-save-${patient.id}`}
+              <Button
+                onClick={toggleEdit}
+                variant={isEditing ? "ghost" : "outline"}
+                size="sm"
+                data-testid={`button-edit-${patient.id}`}
               >
-                <Save className="mr-2 h-4 w-4" />
-                {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                {isEditing ? (
+                  <>
+                    <X className="mr-1 h-3 w-3" />
+                    Cancel
+                  </>
+                ) : (
+                  <>
+                    <Edit className="mr-1 h-3 w-3" />
+                    Edit
+                  </>
+                )}
               </Button>
               
               {isEditing && (
                 <Button 
-                  onClick={handleCancel}
-                  variant="ghost"
-                  data-testid={`button-cancel-edit-${patient.id}`}
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                  data-testid={`button-save-${patient.id}`}
                 >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
+                  <Save className="mr-2 h-4 w-4" />
+                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               )}
             </div>
