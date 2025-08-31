@@ -9,6 +9,7 @@ export const patients = pgTable("patients", {
   mrn: text("mrn").notNull().unique(),
   age: text("age").notNull(),
   sex: text("sex").notNull(),
+  department: text("department").notNull(),
   bed: text("bed").notNull(),
   diagnosis: text("diagnosis").notNull(),
   doa: text("doa").notNull(), // Date of admission
@@ -30,6 +31,7 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
 }).extend({
   age: z.string().min(1, "Age is required"),
   sex: z.enum(["M", "F", "O"], { required_error: "Sex is required" }),
+  department: z.enum(["MW", "PVT", "GW", "SW", "ER"], { required_error: "Department is required" }),
 });
 
 export const updatePatientSchema = createInsertSchema(patients).omit({

@@ -35,6 +35,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   const [mrn, setMrn] = useState(patient.mrn || "");
   const [age, setAge] = useState(patient.age || "");
   const [sex, setSex] = useState(patient.sex || "");
+  const [department, setDepartment] = useState(patient.department || "");
   const [bed, setBed] = useState(patient.bed || "");
   const [diagnosis, setDiagnosis] = useState(patient.diagnosis || "");
   const [doa, setDoa] = useState(patient.doa || "");
@@ -92,6 +93,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
       mrn,
       age,
       sex,
+      department,
       bed,
       diagnosis,
       doa,
@@ -108,6 +110,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
     setMrn(patient.mrn || "");
     setAge(patient.age || "");
     setSex(patient.sex || "");
+    setDepartment(patient.department || "");
     setBed(patient.bed || "");
     setDiagnosis(patient.diagnosis || "");
     setDoa(patient.doa || "");
@@ -214,20 +217,34 @@ export default function PatientCard({ patient }: PatientCardProps) {
                 )}
               </div>
               
-              {/* Bed */}
+              {/* Ward/Bed */}
               <div>
-                <span className="text-muted-foreground">Bed:</span>
+                <span className="text-muted-foreground">Ward/Bed:</span>
                 {isEditing ? (
-                  <Input
-                    value={bed}
-                    onChange={(e) => setBed(e.target.value)}
-                    className="text-sm mt-1"
-                    placeholder="Bed"
-                    data-testid={`input-edit-bed-${patient.id}`}
-                  />
+                  <div className="mt-1 space-y-1">
+                    <Select value={department} onValueChange={setDepartment}>
+                      <SelectTrigger className="text-sm" data-testid={`select-edit-department-${patient.id}`}>
+                        <SelectValue placeholder="Select ward" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MW">Medical Ward (MW)</SelectItem>
+                        <SelectItem value="PVT">Private Ward (PVT)</SelectItem>
+                        <SelectItem value="GW">Gynecology Ward (GW)</SelectItem>
+                        <SelectItem value="SW">Surgical Ward (SW)</SelectItem>
+                        <SelectItem value="ER">Emergency Room (ER)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={bed}
+                      onChange={(e) => setBed(e.target.value)}
+                      className="text-sm"
+                      placeholder="Bed number"
+                      data-testid={`input-edit-bed-${patient.id}`}
+                    />
+                  </div>
                 ) : (
                   <span className="ml-1 font-medium" data-testid={`patient-bed-${patient.id}`}>
-                    {patient.bed}
+                    {patient.department}-{patient.bed}
                   </span>
                 )}
               </div>
