@@ -63,7 +63,7 @@ export default function Header() {
             {user && (
               <div className="flex items-center space-x-3">
                 <div className="text-sm text-muted-foreground">
-                  Welcome, {user.firstName || user.email}
+                  Welcome, {(user as any).firstName || (user as any).email}
                 </div>
                 <Button 
                   onClick={() => window.location.href = '/api/logout'}
