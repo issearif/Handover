@@ -26,7 +26,7 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden" data-testid="summary-table">
         <div className="px-6 py-4 border-b border-border bg-muted/50">
           <h2 className="text-lg font-semibold text-foreground flex items-center" data-testid="summary-title">
-            📊 Patient Summary
+            Patient Summary
             <span 
               className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
               data-testid="patient-count"
