@@ -21,6 +21,26 @@ const getStatusClassName = (status: string) => {
 };
 
 export default function PatientSummaryTable({ patients }: PatientSummaryTableProps) {
+  // Sort patients with MW first, then by department, then by bed number
+  const sortedPatients = [...patients].sort((a, b) => {
+    // Priority order: MW first, then others
+    const departmentOrder = ["MW", "PVT", "GW", "SW", "ER"];
+    const deptA = a.department || "Unknown";
+    const deptB = b.department || "Unknown";
+    
+    const orderA = departmentOrder.indexOf(deptA);
+    const orderB = departmentOrder.indexOf(deptB);
+    
+    if (orderA !== orderB) {
+      return (orderA === -1 ? 999 : orderA) - (orderB === -1 ? 999 : orderB);
+    }
+    
+    // Same department, sort by bed number
+    const bedA = parseInt(a.bed.replace(/\D/g, '')) || 0;
+    const bedB = parseInt(b.bed.replace(/\D/g, '')) || 0;
+    return bedA - bedB;
+  });
+
   return (
     <div className="mb-8">
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden" data-testid="summary-table">
@@ -71,14 +91,14 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                   </td>
                 </tr>
               ) : (
-                patients.map((patient) => (
+                sortedPatients.map((patient) => (
                   <tr 
                     key={patient.id} 
                     className="hover:bg-muted/50 transition-colors"
                     data-testid={`summary-row-${patient.id}`}
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-testid={`bed-${patient.id}`}>
-                      {patient.bed}
+                      {patient.department}{patient.bed}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-foreground" data-testid={`name-${patient.id}`}>
