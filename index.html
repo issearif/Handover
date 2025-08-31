@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Medicine Handover Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <i data-lucide="hospital" class="header-icon"></i>
+                <h1>Internal Medicine Handover</h1>
+            </div>
+            <div class="header-right">
+                <button id="archiveBtn" class="nav-btn">
+                    <i data-lucide="archive" class="btn-icon"></i>
+                    Archive
+                </button>
+                <div class="time-display">
+                    <i data-lucide="clock" class="time-icon"></i>
+                    <span id="currentTime"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view active">
+            <!-- Summary Section -->
+            <div class="summary-section">
+                <div class="summary-header">
+                    <h2>📊 Patient Summary</h2>
+                    <span id="patientCount" class="patient-count">0 Active</span>
+                </div>
+                <div class="summary-table-container">
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Age/Sex</th>
+                                <th>Bed</th>
+                                <th>Diagnosis/DOA</th>
+                                <th>Status</th>
+                                <th>Meds</th>
+                                <th>Tasks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <tr>
+                                <td colspan="7" class="empty-message">No patients currently registered</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="action-bar">
+                <h2>Patient Details</h2>
+                <button id="addPatientBtn" class="add-patient-btn">
+                    <i data-lucide="plus" class="btn-icon"></i>
+                    Add New Patient
+                </button>
+            </div>
+
+            <!-- Patient Cards Grid -->
+            <div id="patientCardsGrid" class="patient-cards-grid">
+                <div class="empty-cards-message">
+                    <p>No patients to display. Add a new patient to get started.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive View -->
+        <div id="archiveView" class="view">
+            <div class="archive-container">
+                <div class="archive-header">
+                    <button id="backToDashboard" class="back-btn">
+                        <i data-lucide="arrow-left" class="btn-icon"></i>
+                        Back to Dashboard
+                    </button>
+                    <h2>
+                        <i data-lucide="archive" class="section-icon"></i>
+                        Archived Patients
+                        <span class="archive-subtitle">(Deleted within 7 days)</span>
+                    </h2>
+                </div>
+                <div id="archivedPatientsList" class="archived-patients-list">
+                    <div class="empty-archive-message">
+                        <i data-lucide="archive" class="empty-icon"></i>
+                        <p>No archived patients</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Patient Modal -->
+    <div id="addPatientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Patient</h3>
+                <button id="closeModal" class="close-btn">
+                    <i data-lucide="x" class="btn-icon"></i>
+                </button>
+            </div>
+            <form id="addPatientForm" class="patient-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientName">Patient Name *</label>
+                        <input type="text" id="patientName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientMRN">MRN *</label>
+                        <input type="text" id="patientMRN" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientAge">Age *</label>
+                        <input type="text" id="patientAge" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientSex">Sex *</label>
+                        <select id="patientSex" required>
+                            <option value="">Select</option>
+                            <option value="M">Male</option>
+                            <option value="F">Female</option>
+                            <option value="O">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientBed">Bed *</label>
+                        <input type="text" id="patientBed" placeholder="e.g., IM-204A" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patientDiagnosis">Diagnosis *</label>
+                        <input type="text" id="patientDiagnosis" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="patientDOA">Date of Admission *</label>
+                        <input type="date" id="patientDOA" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="patientStatus">Status *</label>
+                    <select id="patientStatus" required>
+                        <option value="">Select status</option>
+                        <option value="Stable">Stable</option>
+                        <option value="Critical">Critical</option>
+                        <option value="Monitoring">Monitoring</option>
+                        <option value="Discharge">Ready for Discharge</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="patientMedications">Medications (Abx/Other)</label>
+                    <textarea id="patientMedications" rows="3" placeholder="List current medications..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="patientTasks">Tasks</label>
+                    <textarea id="patientTasks" rows="3" placeholder="Pending tasks and follow-ups..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelForm" class="cancel-btn">Cancel</button>
+                    <button type="submit" class="submit-btn">
+                        <i data-lucide="plus" class="btn-icon"></i>
+                        Add Patient
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚠️ Confirm Deletion</h3>
+            </div>
+            <p>Are you sure you want to delete this patient? The patient will be moved to the archive for 7 days before permanent deletion.</p>
+            <div class="form-actions">
+                <button id="cancelDelete" class="cancel-btn">Cancel</button>
+                <button id="confirmDelete" class="delete-btn">
+                    <i data-lucide="trash-2" class="btn-icon"></i>
+                    Delete Patient
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
