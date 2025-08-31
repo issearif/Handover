@@ -42,16 +42,16 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
   });
 
   return (
-    <div className="mb-8">
+    <div className="mb-6">
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden" data-testid="summary-table">
-        <div className="px-6 py-4 border-b border-border bg-muted/50">
-          <h2 className="text-lg font-semibold text-foreground flex items-center" data-testid="summary-title">
+        <div className="px-4 py-2 border-b border-border bg-muted/50">
+          <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
             Patient Summary
             <span 
               className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
               data-testid="patient-count"
             >
-              {patients.length} Active
+              {patients.length}
             </span>
           </h2>
         </div>
@@ -59,19 +59,19 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
           <table className="w-full">
             <thead className="bg-muted/30">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Bed
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Patient
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Age/Sex
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Diagnosis/DOA
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Tasks
                 </th>
               </tr>
@@ -81,7 +81,7 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                 <tr>
                   <td 
                     colSpan={5} 
-                    className="px-6 py-8 text-center text-muted-foreground"
+                    className="px-3 py-4 text-center text-muted-foreground text-sm"
                     data-testid="empty-patients-message"
                   >
                     No patients currently registered
@@ -94,30 +94,30 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                     className="hover:bg-muted/50 transition-colors"
                     data-testid={`summary-row-${patient.id}`}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-testid={`bed-${patient.id}`}>
+                    <td className="px-3 py-2 whitespace-nowrap text-sm text-foreground font-medium" data-testid={`bed-${patient.id}`}>
                       {patient.department}{patient.bed}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-foreground" data-testid={`name-${patient.id}`}>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <div className="font-medium text-sm text-foreground" data-testid={`name-${patient.id}`}>
                         {patient.name}
                       </div>
-                      <div className="text-sm text-muted-foreground" data-testid={`mrn-${patient.id}`}>
-                        MRN: {patient.mrn}
+                      <div className="text-xs text-muted-foreground" data-testid={`mrn-${patient.id}`}>
+                        ID: {patient.mrn}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-testid={`age-sex-${patient.id}`}>
+                    <td className="px-3 py-2 whitespace-nowrap text-sm text-foreground" data-testid={`age-sex-${patient.id}`}>
                       {patient.age}/{patient.sex}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       <div className="text-sm text-foreground" data-testid={`diagnosis-${patient.id}`}>
                         {patient.diagnosis}
                       </div>
                       <div className="text-xs text-muted-foreground" data-testid={`doa-${patient.id}`}>
-                        DOA: {patient.doa}
+                        {patient.doa}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-foreground" data-testid={`tasks-${patient.id}`}>
-                      {patient.tasks || "No pending tasks"}
+                    <td className="px-3 py-2 whitespace-nowrap text-xs text-foreground" data-testid={`tasks-${patient.id}`}>
+                      {patient.tasks || "None"}
                     </td>
                   </tr>
                 ))
