@@ -68,10 +68,19 @@ export default function Header() {
                 <Button 
                   onClick={async () => {
                     try {
-                      await fetch('/api/logout', { method: 'POST' });
+                      const token = localStorage.getItem("auth_token");
+                      if (token) {
+                        await fetch('/api/logout', { 
+                          method: 'POST',
+                          headers: { "Authorization": `Bearer ${token}` }
+                        });
+                      }
+                      localStorage.removeItem("auth_token");
                       window.location.reload();
                     } catch (error) {
                       console.error('Logout failed:', error);
+                      localStorage.removeItem("auth_token");
+                      window.location.reload();
                     }
                   }}
                   variant="ghost"

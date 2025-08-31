@@ -1,18 +1,11 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
-import session from "express-session";
+import express, { Express } from "express";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser } from "@shared/schema";
-import connectPg from "connect-pg-simple";
 
-declare global {
-  namespace Express {
-    interface User extends SelectUser {}
-  }
-}
+// Simple in-memory session store for development
+const activeSessions = new Map<string, string>(); // token -> userId
 
 const scryptAsync = promisify(scrypt);
 
@@ -29,82 +22,14 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
+function generateToken() {
+  return randomBytes(32).toString('hex');
+}
+
 export function setupAuth(app: Express) {
-  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: true,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  app.use(express.json());
 
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET!,
-    resave: false,
-    saveUninitialized: true, // Changed to true for development
-    store: sessionStore,
-    cookie: {
-      httpOnly: false, // Changed to false for development debugging
-      secure: false,
-      maxAge: sessionTtl,
-      sameSite: 'none', // Changed to none for cross-origin requests
-      path: '/',
-    },
-    name: 'connect.sid',
-  };
-
-  app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  // Debug middleware to log session info
-  app.use((req: any, res, next) => {
-    if (req.path.startsWith('/api')) {
-      console.log(`Request to ${req.path}:`);
-      console.log("- Session ID:", req.sessionID || "none");
-      console.log("- Has session:", !!req.session);
-      console.log("- Session user:", req.session?.passport?.user || "none");
-      console.log("- Cookie header:", req.headers.cookie || "none");
-      console.log("- isAuthenticated:", req.isAuthenticated ? req.isAuthenticated() : "no function");
-    }
-    next();
-  });
-
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
-        } else {
-          return done(null, user);
-        }
-      } catch (error) {
-        return done(error);
-      }
-    }),
-  );
-
-  passport.serializeUser((user, done) => {
-    console.log("Serializing user:", user.id);
-    done(null, user.id);
-  });
-  
-  passport.deserializeUser(async (id: string, done) => {
-    try {
-      console.log("Deserializing user ID:", id);
-      const user = await storage.getUser(id);
-      console.log("Found user:", user ? "yes" : "no");
-      done(null, user);
-    } catch (error) {
-      console.error("Deserialization error:", error);
-      done(error);
-    }
-  });
-
-  app.post("/api/register", async (req, res, next) => {
+  app.post("/api/register", async (req, res) => {
     try {
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
@@ -116,9 +41,12 @@ export function setupAuth(app: Express) {
         password: await hashPassword(req.body.password),
       });
 
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json({ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName });
+      const token = generateToken();
+      activeSessions.set(token, user.id);
+
+      res.status(201).json({ 
+        user: { id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName },
+        token 
       });
     } catch (error) {
       console.error("Registration error:", error);
@@ -126,33 +54,93 @@ export function setupAuth(app: Express) {
     }
   });
 
-  app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    const user = req.user as SelectUser;
-    console.log("Login successful for user:", user.id);
-    res.status(200).json({ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName });
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      const user = await storage.getUserByUsername(username);
+      
+      if (!user || !(await comparePasswords(password, user.password))) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+
+      const token = generateToken();
+      activeSessions.set(token, user.id);
+      console.log("Login successful for user:", user.id, "token:", token);
+
+      res.status(200).json({ 
+        user: { id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName },
+        token 
+      });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Login failed" });
+    }
   });
 
-  app.post("/api/logout", (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
-    });
+  app.post("/api/logout", (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      activeSessions.delete(token);
+    }
+    res.sendStatus(200);
   });
 
-  app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    const user = req.user as SelectUser;
-    res.json({ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName });
+  app.get("/api/user", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.sendStatus(401);
+    }
+
+    const token = authHeader.substring(7);
+    const userId = activeSessions.get(token);
+    
+    if (!userId) {
+      return res.sendStatus(401);
+    }
+
+    try {
+      const user = await storage.getUser(userId);
+      if (!user) {
+        activeSessions.delete(token);
+        return res.sendStatus(401);
+      }
+
+      res.json({ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName });
+    } catch (error) {
+      console.error("User fetch error:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
   });
 }
 
-export function isAuthenticated(req: any, res: any, next: any) {
-  console.log("Auth check - isAuthenticated:", req.isAuthenticated());
-  console.log("Auth check - user:", req.user ? "exists" : "null");
-  console.log("Auth check - session:", req.session ? "exists" : "null");
+export async function isAuthenticated(req: any, res: any, next: any) {
+  const authHeader = req.headers.authorization;
+  console.log("Auth check - authorization header:", authHeader ? "exists" : "none");
   
-  if (req.isAuthenticated()) {
-    return next();
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ message: "Unauthorized" });
   }
-  res.status(401).json({ message: "Unauthorized" });
+
+  const token = authHeader.substring(7);
+  const userId = activeSessions.get(token);
+  console.log("Auth check - token valid:", !!userId);
+  
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  try {
+    const user = await storage.getUser(userId);
+    if (!user) {
+      activeSessions.delete(token);
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Auth check error:", error);
+    res.status(500).json({ message: "Authentication error" });
+  }
 }
