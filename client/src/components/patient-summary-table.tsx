@@ -1,5 +1,7 @@
 import { Patient } from "@shared/schema";
 import { cn } from "@/lib/utils";
+import { Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PatientSummaryTableProps {
   patients: Patient[];
@@ -41,37 +43,170 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
     return bedA - bedB;
   });
 
+  const handlePrint = () => {
+    const printContent = document.getElementById('patient-summary-print');
+    if (!printContent) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const currentDate = new Date().toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Patient Summary - ${currentDate}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 20mm;
+            }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              font-size: 12px;
+              line-height: 1.4;
+              color: #000;
+              margin: 0;
+              padding: 0;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 2px solid #000;
+              padding-bottom: 10px;
+              margin-bottom: 20px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 24px;
+              font-weight: bold;
+            }
+            .header p {
+              margin: 5px 0 0 0;
+              font-size: 14px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+            th, td {
+              border: 1px solid #000;
+              padding: 8px;
+              text-align: left;
+              vertical-align: top;
+            }
+            th {
+              background-color: #f0f0f0;
+              font-weight: bold;
+              font-size: 11px;
+            }
+            .bed-col { width: 12%; }
+            .patient-col { width: 25%; }
+            .age-col { width: 15%; }
+            .diagnosis-col { width: 30%; }
+            .tasks-col { width: 18%; }
+            .patient-name {
+              font-weight: bold;
+              margin-bottom: 2px;
+            }
+            .patient-id {
+              font-size: 10px;
+              color: #666;
+            }
+            .diagnosis-text {
+              margin-bottom: 2px;
+            }
+            .doa-text {
+              font-size: 10px;
+              color: #666;
+            }
+            .footer {
+              position: fixed;
+              bottom: 10mm;
+              left: 0;
+              right: 0;
+              text-align: center;
+              font-size: 10px;
+              color: #666;
+            }
+            @media print {
+              .no-print { display: none !important; }
+              body { background: white; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Internal Medicine Department</h1>
+            <p>Patient Handover Summary - ${currentDate}</p>
+            <p>Total Patients: ${patients.length}</p>
+          </div>
+          ${printContent.innerHTML}
+          <div class="footer">
+            <p>Generated on ${currentDate} | Internal Medicine Handover System</p>
+          </div>
+        </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
   return (
     <div className="mb-6">
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden" data-testid="summary-table">
         <div className="px-4 py-2 border-b border-border bg-muted/50">
-          <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
-            Patient Summary
-            <span 
-              className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
-              data-testid="patient-count"
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
+              Patient Summary
+              <span 
+                className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
+                data-testid="patient-count"
+              >
+                {patients.length}
+              </span>
+            </h2>
+            <Button
+              onClick={handlePrint}
+              variant="outline"
+              size="sm"
+              className="no-print"
+              data-testid="print-summary-button"
             >
-              {patients.length}
-            </span>
-          </h2>
+              <Printer className="mr-2 h-4 w-4" />
+              Print Summary
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full" id="patient-summary-print">
             <thead className="bg-muted/30">
               <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bed-col">
                   Bed
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider patient-col">
                   Patient
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider age-col">
                   Age/Sex
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider diagnosis-col">
                   Diagnosis/DOA
                 </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider tasks-col">
                   Tasks
                 </th>
               </tr>
@@ -94,29 +229,29 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                     className="hover:bg-muted/50 transition-colors"
                     data-testid={`summary-row-${patient.id}`}
                   >
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-foreground font-medium" data-testid={`bed-${patient.id}`}>
+                    <td className="px-3 py-2 text-sm text-foreground font-medium bed-col" data-testid={`bed-${patient.id}`}>
                       {patient.department}{patient.bed}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      <div className="font-medium text-sm text-foreground" data-testid={`name-${patient.id}`}>
+                    <td className="px-3 py-2 patient-col">
+                      <div className="font-medium text-sm text-foreground patient-name" data-testid={`name-${patient.id}`}>
                         {patient.name}
                       </div>
-                      <div className="text-xs text-muted-foreground" data-testid={`mrn-${patient.id}`}>
+                      <div className="text-xs text-muted-foreground patient-id" data-testid={`mrn-${patient.id}`}>
                         ID: {patient.mrn}
                       </div>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-sm text-foreground" data-testid={`age-sex-${patient.id}`}>
+                    <td className="px-3 py-2 text-sm text-foreground age-col" data-testid={`age-sex-${patient.id}`}>
                       {patient.age}/{patient.sex}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
-                      <div className="text-sm text-foreground" data-testid={`diagnosis-${patient.id}`}>
+                    <td className="px-3 py-2 diagnosis-col">
+                      <div className="text-sm text-foreground diagnosis-text" data-testid={`diagnosis-${patient.id}`}>
                         {patient.diagnosis}
                       </div>
-                      <div className="text-xs text-muted-foreground" data-testid={`doa-${patient.id}`}>
+                      <div className="text-xs text-muted-foreground doa-text" data-testid={`doa-${patient.id}`}>
                         {patient.doa}
                       </div>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-xs text-foreground" data-testid={`tasks-${patient.id}`}>
+                    <td className="px-3 py-2 text-xs text-foreground tasks-col" data-testid={`tasks-${patient.id}`}>
                       {patient.tasks || "None"}
                     </td>
                   </tr>
