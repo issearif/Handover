@@ -49,8 +49,9 @@ export function setupAuth(app: Express) {
       secure: false, // Set to true in production with HTTPS
       maxAge: sessionTtl,
       sameSite: 'lax',
+      path: '/',
     },
-    name: 'sessionId',
+    name: 'connect.sid',
   };
 
   app.set("trust proxy", 1);
