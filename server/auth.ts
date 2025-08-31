@@ -42,13 +42,13 @@ export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true, // Changed to true for development
     store: sessionStore,
     cookie: {
-      httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
+      httpOnly: false, // Changed to false for development debugging
+      secure: false,
       maxAge: sessionTtl,
-      sameSite: 'lax',
+      sameSite: 'none', // Changed to none for cross-origin requests
       path: '/',
     },
     name: 'connect.sid',
@@ -66,6 +66,7 @@ export function setupAuth(app: Express) {
       console.log("- Session ID:", req.sessionID || "none");
       console.log("- Has session:", !!req.session);
       console.log("- Session user:", req.session?.passport?.user || "none");
+      console.log("- Cookie header:", req.headers.cookie || "none");
       console.log("- isAuthenticated:", req.isAuthenticated ? req.isAuthenticated() : "no function");
     }
     next();
