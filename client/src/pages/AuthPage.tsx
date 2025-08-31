@@ -38,11 +38,13 @@ export default function AuthPage() {
       const res = await apiRequest("POST", "/api/login", credentials);
       return await res.json();
     },
-    onSuccess: (user) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (data) => {
+      // Store token in localStorage
+      localStorage.setItem("auth_token", data.token);
+      queryClient.setQueryData(["/api/user"], data.user);
       toast({
         title: "Login successful",
-        description: `Welcome, ${user.firstName || user.username}!`,
+        description: `Welcome, ${data.user.firstName || data.user.username}!`,
       });
     },
     onError: (error: Error) => {
@@ -59,11 +61,13 @@ export default function AuthPage() {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
-    onSuccess: (user) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (data) => {
+      // Store token in localStorage
+      localStorage.setItem("auth_token", data.token);
+      queryClient.setQueryData(["/api/user"], data.user);
       toast({
         title: "Registration successful",
-        description: `Welcome, ${user.firstName || user.username}!`,
+        description: `Welcome, ${data.user.firstName || data.user.username}!`,
       });
     },
     onError: (error: Error) => {
