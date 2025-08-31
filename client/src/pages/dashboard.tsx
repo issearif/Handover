@@ -11,7 +11,9 @@ export default function Dashboard() {
     queryKey: ["/api/patients"],
   });
 
-  // Group patients by department
+  // Group patients by department with MW first priority
+  const departmentOrder = ["MW", "PVT", "GW", "SW", "ER", "Unknown"];
+  
   const groupedPatients = patients.reduce((groups, patient) => {
     const dept = patient.department || "Unknown";
     if (!groups[dept]) {
@@ -20,6 +22,15 @@ export default function Dashboard() {
     groups[dept].push(patient);
     return groups;
   }, {} as Record<string, Patient[]>);
+  
+  // Sort each department's patients by bed number
+  Object.keys(groupedPatients).forEach(dept => {
+    groupedPatients[dept].sort((a, b) => {
+      const bedA = parseInt(a.bed.replace(/\D/g, '')) || 0;
+      const bedB = parseInt(b.bed.replace(/\D/g, '')) || 0;
+      return bedA - bedB;
+    });
+  });
 
   // Department labels mapping
   const departmentLabels = {
@@ -74,8 +85,12 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="space-y-8">
-            {Object.entries(groupedPatients).map(([department, deptPatients]) => (
-              <div key={department} className="space-y-4" data-testid={`department-${department}`}>
+            {departmentOrder
+              .filter(dept => groupedPatients[dept] && groupedPatients[dept].length > 0)
+              .map(department => {
+                const deptPatients = groupedPatients[department];
+                return (
+                  <div key={department} className="space-y-4" data-testid={`department-${department}`}>
                 {/* Department Header */}
                 <div className="border-b border-border pb-2">
                   <h3 className="text-lg font-semibold text-foreground flex items-center">
@@ -97,8 +112,9 @@ export default function Dashboard() {
                     <PatientCard key={patient.id} patient={patient} />
                   ))}
                 </div>
-              </div>
-            ))}
+                  </div>
+                );
+              })}
           </div>
         )}
       </main>
