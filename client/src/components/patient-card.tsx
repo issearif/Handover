@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Patient, UpdatePatient } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Save, Trash2 } from "lucide-react";
+import { ChevronDown, Save, Trash2, Edit, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -24,23 +26,17 @@ interface PatientCardProps {
   patient: Patient;
 }
 
-const getStatusClassName = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'stable':
-      return 'status-stable';
-    case 'critical':
-      return 'status-critical';
-    case 'monitoring':
-      return 'status-monitoring';
-    case 'discharge':
-      return 'status-discharge';
-    default:
-      return 'bg-gray-50 text-gray-700 border-gray-200';
-  }
-};
-
 export default function PatientCard({ patient }: PatientCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  // Editable fields state
+  const [name, setName] = useState(patient.name || "");
+  const [age, setAge] = useState(patient.age || "");
+  const [sex, setSex] = useState(patient.sex || "");
+  const [bed, setBed] = useState(patient.bed || "");
+  const [diagnosis, setDiagnosis] = useState(patient.diagnosis || "");
+  const [doa, setDoa] = useState(patient.doa || "");
   const [medications, setMedications] = useState(patient.medications || "");
   const [tasks, setTasks] = useState(patient.tasks || "");
   const [notes, setNotes] = useState(patient.notes || "");
@@ -91,18 +87,48 @@ export default function PatientCard({ patient }: PatientCardProps) {
 
   const handleSave = () => {
     updateMutation.mutate({
+      name,
+      age,
+      sex,
+      bed,
+      diagnosis,
+      doa,
       medications,
       tasks,
       notes,
     });
+    setIsEditing(false);
+  };
+  
+  const handleCancel = () => {
+    // Reset all fields to original values
+    setName(patient.name || "");
+    setAge(patient.age || "");
+    setSex(patient.sex || "");
+    setBed(patient.bed || "");
+    setDiagnosis(patient.diagnosis || "");
+    setDoa(patient.doa || "");
+    setMedications(patient.medications || "");
+    setTasks(patient.tasks || "");
+    setNotes(patient.notes || "");
+    setIsEditing(false);
   };
 
   const handleDelete = () => {
     deleteMutation.mutate();
   };
 
-  const toggleExpanded = () => {
+  const toggleExpanded = (e: React.MouseEvent) => {
+    // Don't toggle if clicking on edit button or input fields
+    if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input')) {
+      return;
+    }
     setIsExpanded(!isExpanded);
+  };
+
+  const toggleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(!isEditing);
   };
 
   return (
@@ -117,47 +143,144 @@ export default function PatientCard({ patient }: PatientCardProps) {
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-foreground mb-1" data-testid={`patient-name-${patient.id}`}>
-              {patient.name}
-            </h3>
-            <p className="text-sm text-muted-foreground mb-3" data-testid={`patient-mrn-${patient.id}`}>
-              MRN: {patient.mrn}
-            </p>
+            {/* Patient Name */}
+            <div className="mb-1">
+              {isEditing ? (
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="text-lg font-semibold"
+                  placeholder="Patient name"
+                  data-testid={`input-edit-name-${patient.id}`}
+                />
+              ) : (
+                <h3 className="font-semibold text-lg text-foreground" data-testid={`patient-name-${patient.id}`}>
+                  {patient.name}
+                </h3>
+              )}
+            </div>
+            
+            {/* MRN */}
+            <div className="mb-3">
+              {isEditing ? (
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">MRN:</span>
+                  <Input
+                    value={patient.mrn}
+                    disabled
+                    className="text-sm flex-1"
+                    data-testid={`input-edit-mrn-${patient.id}`}
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground" data-testid={`patient-mrn-${patient.id}`}>
+                  MRN: {patient.mrn}
+                </p>
+              )}
+            </div>
             
             <div className="grid grid-cols-2 gap-3 text-sm">
+              {/* Age/Sex */}
               <div>
                 <span className="text-muted-foreground">Age/Sex:</span>
-                <span className="ml-1 font-medium" data-testid={`patient-age-sex-${patient.id}`}>
-                  {patient.age}/{patient.sex}
-                </span>
+                {isEditing ? (
+                  <div className="flex space-x-1 mt-1">
+                    <Input
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      className="text-sm w-16"
+                      placeholder="Age"
+                      data-testid={`input-edit-age-${patient.id}`}
+                    />
+                    <Select value={sex} onValueChange={setSex}>
+                      <SelectTrigger className="w-16 text-sm" data-testid={`select-edit-sex-${patient.id}`}>
+                        <SelectValue placeholder="Sex" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="M">M</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
+                        <SelectItem value="O">O</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <span className="ml-1 font-medium" data-testid={`patient-age-sex-${patient.id}`}>
+                    {patient.age}/{patient.sex}
+                  </span>
+                )}
               </div>
+              
+              {/* Bed */}
               <div>
                 <span className="text-muted-foreground">Bed:</span>
-                <span className="ml-1 font-medium" data-testid={`patient-bed-${patient.id}`}>
-                  {patient.bed}
-                </span>
+                {isEditing ? (
+                  <Input
+                    value={bed}
+                    onChange={(e) => setBed(e.target.value)}
+                    className="text-sm mt-1"
+                    placeholder="Bed"
+                    data-testid={`input-edit-bed-${patient.id}`}
+                  />
+                ) : (
+                  <span className="ml-1 font-medium" data-testid={`patient-bed-${patient.id}`}>
+                    {patient.bed}
+                  </span>
+                )}
               </div>
+              
+              {/* Diagnosis */}
               <div className="col-span-2">
                 <span className="text-muted-foreground">Diagnosis:</span>
-                <span className="ml-1 font-medium" data-testid={`patient-diagnosis-${patient.id}`}>
-                  {patient.diagnosis}
-                </span>
-                <span className="text-xs text-muted-foreground ml-2" data-testid={`patient-doa-${patient.id}`}>
-                  (DOA: {patient.doa})
-                </span>
+                {isEditing ? (
+                  <div className="mt-1">
+                    <Input
+                      value={diagnosis}
+                      onChange={(e) => setDiagnosis(e.target.value)}
+                      className="text-sm"
+                      placeholder="Primary diagnosis"
+                      data-testid={`input-edit-diagnosis-${patient.id}`}
+                    />
+                    <Input
+                      value={doa}
+                      onChange={(e) => setDoa(e.target.value)}
+                      type="date"
+                      className="text-sm mt-2"
+                      data-testid={`input-edit-doa-${patient.id}`}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <span className="ml-1 font-medium" data-testid={`patient-diagnosis-${patient.id}`}>
+                      {patient.diagnosis}
+                    </span>
+                    <span className="text-xs text-muted-foreground ml-2" data-testid={`patient-doa-${patient.id}`}>
+                      (DOA: {patient.doa})
+                    </span>
+                  </>
+                )}
               </div>
             </div>
             
             <div className="mt-3 flex items-center justify-between">
-              <span 
-                className={cn(
-                  "inline-flex px-2 py-1 text-xs font-medium rounded-full",
-                  getStatusClassName(patient.status)
-                )}
-                data-testid={`patient-status-${patient.id}`}
+              <Button
+                onClick={toggleEdit}
+                variant="ghost"
+                size="sm"
+                className="text-xs"
+                data-testid={`button-edit-${patient.id}`}
               >
-                {patient.status}
-              </span>
+                {isEditing ? (
+                  <>
+                    <X className="mr-1 h-3 w-3" />
+                    Cancel
+                  </>
+                ) : (
+                  <>
+                    <Edit className="mr-1 h-3 w-3" />
+                    Edit
+                  </>
+                )}
+              </Button>
               <ChevronDown 
                 className={cn(
                   "text-muted-foreground transition-transform h-4 w-4",
@@ -222,15 +345,28 @@ export default function PatientCard({ patient }: PatientCardProps) {
           </div>
           
           <div className="flex justify-between items-center pt-4 border-t border-border">
-            <Button 
-              onClick={handleSave}
-              disabled={updateMutation.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
-              data-testid={`button-save-${patient.id}`}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {updateMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                onClick={handleSave}
+                disabled={updateMutation.isPending}
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
+                data-testid={`button-save-${patient.id}`}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+              
+              {isEditing && (
+                <Button 
+                  onClick={handleCancel}
+                  variant="ghost"
+                  data-testid={`button-cancel-edit-${patient.id}`}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Button>
+              )}
+            </div>
             
             <AlertDialog>
               <AlertDialogTrigger asChild>
