@@ -12,7 +12,6 @@ export const patients = pgTable("patients", {
   bed: text("bed").notNull(),
   diagnosis: text("diagnosis").notNull(),
   doa: text("doa").notNull(), // Date of admission
-  status: text("status").default("Stable"),
   medications: text("medications").default(""),
   tasks: text("tasks").default(""),
   notes: text("notes").default(""),
