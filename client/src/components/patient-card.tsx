@@ -149,9 +149,9 @@ export default function PatientCard({ patient }: PatientCardProps) {
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            {/* Patient Name */}
+            {/* Patient Name - Always show as text in collapsed view */}
             <div className="mb-1">
-              {isEditing ? (
+              {isEditing && isExpanded ? (
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -166,9 +166,9 @@ export default function PatientCard({ patient }: PatientCardProps) {
               )}
             </div>
             
-            {/* ID Number */}
+            {/* ID Number - Always show as text in collapsed view */}
             <div className="mb-3">
-              {isEditing ? (
+              {isEditing && isExpanded ? (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">ID Number:</span>
                   <Input
@@ -190,7 +190,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               {/* Age/Sex */}
               <div>
                 <span className="text-muted-foreground">Age/Sex:</span>
-                {isEditing ? (
+                {isEditing && isExpanded ? (
                   <div className="flex space-x-1 mt-1">
                     <Input
                       value={age}
@@ -220,7 +220,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               {/* Ward/Bed */}
               <div>
                 <span className="text-muted-foreground">Ward/Bed:</span>
-                {isEditing ? (
+                {isEditing && isExpanded ? (
                   <div className="mt-1 space-y-1">
                     <Select value={department} onValueChange={setDepartment}>
                       <SelectTrigger className="text-sm" data-testid={`select-edit-department-${patient.id}`}>
@@ -252,7 +252,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               {/* Diagnosis */}
               <div className="col-span-2">
                 <span className="text-muted-foreground">Diagnosis:</span>
-                {isEditing ? (
+                {isEditing && isExpanded ? (
                   <div className="mt-1">
                     <Input
                       value={diagnosis}
