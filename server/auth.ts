@@ -48,13 +48,27 @@ export function setupAuth(app: Express) {
       httpOnly: true,
       secure: false, // Set to true in production with HTTPS
       maxAge: sessionTtl,
+      sameSite: 'lax',
     },
+    name: 'sessionId',
   };
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());
+
+  // Debug middleware to log session info
+  app.use((req: any, res, next) => {
+    if (req.path.startsWith('/api')) {
+      console.log(`Request to ${req.path}:`);
+      console.log("- Session ID:", req.sessionID || "none");
+      console.log("- Has session:", !!req.session);
+      console.log("- Session user:", req.session?.passport?.user || "none");
+      console.log("- isAuthenticated:", req.isAuthenticated ? req.isAuthenticated() : "no function");
+    }
+    next();
+  });
 
   passport.use(
     new LocalStrategy(async (username, password, done) => {
