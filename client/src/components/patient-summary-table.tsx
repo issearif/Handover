@@ -72,9 +72,6 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                   Diagnosis/DOA
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Meds
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Tasks
                 </th>
               </tr>
@@ -83,7 +80,7 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
               {patients.length === 0 ? (
                 <tr>
                   <td 
-                    colSpan={6} 
+                    colSpan={5} 
                     className="px-6 py-8 text-center text-muted-foreground"
                     data-testid="empty-patients-message"
                   >
@@ -118,9 +115,6 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                       <div className="text-xs text-muted-foreground" data-testid={`doa-${patient.id}`}>
                         DOA: {patient.doa}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-foreground" data-testid={`medications-${patient.id}`}>
-                      {patient.medications || "None specified"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-foreground" data-testid={`tasks-${patient.id}`}>
                       {patient.tasks || "No pending tasks"}
