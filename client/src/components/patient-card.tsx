@@ -132,9 +132,9 @@ export default function PatientCard({ patient }: PatientCardProps) {
     setIsExpanded(!isExpanded);
   };
 
-  const toggleEdit = (e: React.MouseEvent) => {
+  const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsEditing(!isEditing);
+    setIsEditing(true);
   };
 
   return (
@@ -349,7 +349,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <div className="flex space-x-2">
               <Button
-                onClick={toggleEdit}
+                onClick={handleEdit}
                 variant={isEditing ? "ghost" : "outline"}
                 size="sm"
                 data-testid={`button-edit-${patient.id}`}
