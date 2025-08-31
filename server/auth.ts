@@ -71,12 +71,19 @@ export function setupAuth(app: Express) {
     }),
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    console.log("Serializing user:", user.id);
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: string, done) => {
     try {
+      console.log("Deserializing user ID:", id);
       const user = await storage.getUser(id);
+      console.log("Found user:", user ? "yes" : "no");
       done(null, user);
     } catch (error) {
+      console.error("Deserialization error:", error);
       done(error);
     }
   });
@@ -105,6 +112,7 @@ export function setupAuth(app: Express) {
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
     const user = req.user as SelectUser;
+    console.log("Login successful for user:", user.id);
     res.status(200).json({ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName });
   });
 
