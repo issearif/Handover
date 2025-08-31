@@ -66,7 +66,14 @@ export default function Header() {
                   Welcome, {(user as any).firstName || (user as any).email}
                 </div>
                 <Button 
-                  onClick={() => window.location.href = '/api/logout'}
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/logout', { method: 'POST' });
+                      window.location.reload();
+                    } catch (error) {
+                      console.error('Logout failed:', error);
+                    }
+                  }}
                   variant="ghost"
                   size="sm"
                   data-testid="logout-button"
