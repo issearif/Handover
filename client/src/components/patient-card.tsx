@@ -348,24 +348,27 @@ export default function PatientCard({ patient }: PatientCardProps) {
           
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <div className="flex space-x-2">
-              <Button
-                onClick={handleEdit}
-                variant={isEditing ? "ghost" : "outline"}
-                size="sm"
-                data-testid={`button-edit-${patient.id}`}
-              >
-                {isEditing ? (
-                  <>
-                    <X className="mr-1 h-3 w-3" />
-                    Cancel
-                  </>
-                ) : (
-                  <>
-                    <Edit className="mr-1 h-3 w-3" />
-                    Edit
-                  </>
-                )}
-              </Button>
+              {!isEditing ? (
+                <Button
+                  onClick={handleEdit}
+                  variant="outline"
+                  size="sm"
+                  data-testid={`button-edit-${patient.id}`}
+                >
+                  <Edit className="mr-1 h-3 w-3" />
+                  Edit
+                </Button>
+              ) : (
+                <Button
+                  onClick={handleCancel}
+                  variant="ghost"
+                  size="sm"
+                  data-testid={`button-cancel-${patient.id}`}
+                >
+                  <X className="mr-1 h-3 w-3" />
+                  Cancel
+                </Button>
+              )}
               
               {isEditing && (
                 <Button 
