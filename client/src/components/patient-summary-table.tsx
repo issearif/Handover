@@ -40,13 +40,13 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
             <thead className="bg-muted/30">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Bed
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Patient
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Age/Sex
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Bed
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Diagnosis/DOA
@@ -80,6 +80,9 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                     className="hover:bg-muted/50 transition-colors"
                     data-testid={`summary-row-${patient.id}`}
                   >
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-testid={`bed-${patient.id}`}>
+                      {patient.bed}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="font-medium text-foreground" data-testid={`name-${patient.id}`}>
                         {patient.name}
@@ -90,9 +93,6 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-testid={`age-sex-${patient.id}`}>
                       {patient.age}/{patient.sex}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground" data-testid={`bed-${patient.id}`}>
-                      {patient.bed}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-foreground" data-testid={`diagnosis-${patient.id}`}>
