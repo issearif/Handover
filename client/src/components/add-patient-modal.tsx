@@ -47,7 +47,6 @@ export default function AddPatientModal() {
       bed: "",
       diagnosis: "",
       doa: "",
-      status: undefined,
       medications: "",
       tasks: "",
       notes: "",
@@ -238,29 +237,6 @@ export default function AddPatientModal() {
               />
             </div>
             
-            <FormField
-              control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Status *</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-status">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Stable">Stable</SelectItem>
-                      <SelectItem value="Critical">Critical</SelectItem>
-                      <SelectItem value="Monitoring">Monitoring</SelectItem>
-                      <SelectItem value="Discharge">Ready for Discharge</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             
             <FormField
               control={form.control}
