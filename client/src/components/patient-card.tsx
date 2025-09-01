@@ -143,7 +143,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
       data-testid={`patient-card-${patient.id}`}
     >
       <div 
-        className="p-6 cursor-pointer" 
+        className="p-4 cursor-pointer" 
         onClick={toggleExpanded}
         data-testid={`card-header-${patient.id}`}
       >
@@ -160,14 +160,14 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   data-testid={`input-edit-name-${patient.id}`}
                 />
               ) : (
-                <h3 className="font-semibold text-lg text-foreground" data-testid={`patient-name-${patient.id}`}>
+                <h3 className="font-semibold text-base text-foreground" data-testid={`patient-name-${patient.id}`}>
                   {patient.name}
                 </h3>
               )}
             </div>
             
             {/* ID Number - Always show as text in collapsed view */}
-            <div className="mb-3">
+            <div className="mb-2">
               {isEditing && isExpanded ? (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-muted-foreground">ID Number:</span>
@@ -186,7 +186,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               )}
             </div>
             
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-2 gap-2 text-sm">
               {/* Age/Sex */}
               <div>
                 <span className="text-muted-foreground">Age/Sex:</span>
@@ -282,7 +282,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               </div>
             </div>
             
-            <div className="mt-3 flex items-center justify-end">
+            <div className="mt-2 flex items-center justify-end">
               <ChevronDown 
                 className={cn(
                   "text-muted-foreground transition-transform h-4 w-4",
@@ -300,7 +300,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
         "expandable-content border-t border-border bg-muted/20",
         isExpanded && "expanded"
       )}>
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-3">
           <div>
             <Label htmlFor={`medications-${patient.id}`} className="block text-sm font-medium text-foreground mb-2">
               Medications (Abx/Other)
@@ -310,7 +310,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               value={medications}
               onChange={(e) => setMedications(e.target.value)}
               className="w-full"
-              rows={2}
+              rows={1}
               placeholder="Enter medications..."
               data-testid={`textarea-medications-${patient.id}`}
             />
@@ -325,7 +325,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               value={tasks}
               onChange={(e) => setTasks(e.target.value)}
               className="w-full"
-              rows={2}
+              rows={1}
               placeholder="Enter tasks..."
               data-testid={`textarea-tasks-${patient.id}`}
             />
@@ -340,7 +340,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full"
-              rows={3}
+              rows={2}
               placeholder="Add any additional notes here..."
               data-testid={`textarea-notes-${patient.id}`}
             />
