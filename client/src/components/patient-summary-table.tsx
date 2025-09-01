@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { Patient } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { Printer } from "lucide-react";
+import { Printer, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface PatientSummaryTableProps {
@@ -23,6 +24,7 @@ const getStatusClassName = (status: string) => {
 };
 
 export default function PatientSummaryTable({ patients }: PatientSummaryTableProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
   // Sort patients with MW first, then by department, then by bed number
   const sortedPatients = [...patients].sort((a, b) => {
     // Priority order: MW first, then others
@@ -315,7 +317,10 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
   return (
     <div className="mb-6">
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden" data-testid="summary-table">
-        <div className="px-4 py-2 border-b border-border bg-muted/50">
+        <div 
+          className="px-4 py-2 border-b border-border bg-muted/50 cursor-pointer" 
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
               Patient Summary
@@ -325,20 +330,35 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
               >
                 {patients.length}
               </span>
+              <ChevronDown 
+                className={cn(
+                  "ml-2 text-muted-foreground transition-transform h-4 w-4",
+                  isExpanded && "rotate-180"
+                )}
+                data-testid="expand-summary-icon"
+              />
             </h2>
-            <Button
-              onClick={handlePrint}
-              variant="outline"
-              size="sm"
-              className="no-print"
-              data-testid="print-summary-button"
-            >
-              <Printer className="mr-2 h-4 w-4" />
-              Print Summary
-            </Button>
+            {isExpanded && (
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrint();
+                }}
+                variant="outline"
+                size="sm"
+                className="no-print"
+                data-testid="print-summary-button"
+              >
+                <Printer className="mr-2 h-4 w-4" />
+                Print Summary
+              </Button>
+            )}
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className={cn(
+          "expandable-content overflow-x-auto",
+          isExpanded && "expanded"
+        )}>
           <table className="w-full" id="patient-summary-print">
             <thead className="bg-muted/30">
               <tr>
