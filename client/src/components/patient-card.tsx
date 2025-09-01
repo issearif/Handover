@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Patient, UpdatePatient } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Save, Trash2, Edit, X, Maximize2, Minimize2 } from "lucide-react";
+import { ChevronDown, Save, Trash2, Edit, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -21,13 +21,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 interface PatientCardProps {
   patient: Patient;
@@ -36,7 +29,6 @@ interface PatientCardProps {
 export default function PatientCard({ patient }: PatientCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isFullScreen, setIsFullScreen] = useState(false);
   
   // Editable fields state
   const [name, setName] = useState(patient.name || "");
@@ -290,95 +282,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
               </div>
             </div>
             
-            <div className="mt-3 flex items-center justify-between">
-              <div className="flex space-x-2">
-                <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
-                      data-testid={`button-fullscreen-${patient.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Maximize2 className="h-3 w-3" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-6xl h-[90vh] flex flex-col" data-testid={`fullscreen-dialog-${patient.id}`}>
-                    <DialogHeader className="flex-shrink-0">
-                      <DialogTitle className="text-2xl font-bold flex items-center justify-between">
-                        <span>{patient.name}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setIsFullScreen(false)}
-                          data-testid={`button-close-fullscreen-${patient.id}`}
-                        >
-                          <Minimize2 className="h-4 w-4" />
-                        </Button>
-                      </DialogTitle>
-                    </DialogHeader>
-                    <div className="flex-1 overflow-y-auto">
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-2">
-                        {/* Patient Information Section */}
-                        <div className="space-y-6">
-                          <div className="bg-muted/30 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-primary">Patient Information</h3>
-                            <div className="space-y-3 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">ID Number:</span>
-                                <span className="font-medium" data-testid={`fullscreen-mrn-${patient.id}`}>{patient.mrn}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Age/Sex:</span>
-                                <span className="font-medium" data-testid={`fullscreen-age-sex-${patient.id}`}>{patient.age}/{patient.sex}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Ward/Bed:</span>
-                                <span className="font-medium" data-testid={`fullscreen-bed-${patient.id}`}>{patient.department}-{patient.bed}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Date of Admission:</span>
-                                <span className="font-medium" data-testid={`fullscreen-doa-${patient.id}`}>{patient.doa}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-muted/30 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-primary">Diagnosis</h3>
-                            <p className="text-sm leading-relaxed" data-testid={`fullscreen-diagnosis-${patient.id}`}>{patient.diagnosis || "No diagnosis recorded"}</p>
-                          </div>
-                        </div>
-                        
-                        {/* Clinical Information Section */}
-                        <div className="space-y-6">
-                          <div className="bg-muted/30 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-primary">Medications (Abx/Other)</h3>
-                            <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`fullscreen-medications-${patient.id}`}>
-                              {patient.medications || "No medications recorded"}
-                            </div>
-                          </div>
-                          
-                          <div className="bg-muted/30 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-primary">Tasks</h3>
-                            <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`fullscreen-tasks-${patient.id}`}>
-                              {patient.tasks || "No tasks recorded"}
-                            </div>
-                          </div>
-                          
-                          <div className="bg-muted/30 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold mb-4 text-primary">Additional Notes</h3>
-                            <div className="text-sm leading-relaxed whitespace-pre-wrap" data-testid={`fullscreen-notes-${patient.id}`}>
-                              {patient.notes || "No additional notes"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-              
+            <div className="mt-3 flex items-center justify-end">
               <ChevronDown 
                 className={cn(
                   "text-muted-foreground transition-transform h-4 w-4",
