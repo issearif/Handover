@@ -1,4 +1,4 @@
-import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, users, patients } from "@shared/schema";
+import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type DailyProgress, type InsertDailyProgress, users, patients, dailyProgress } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -17,15 +17,20 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  // Daily progress operations
+  getDailyProgress(patientId: string): Promise<DailyProgress[]>;
+  createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
 }
 
 export class MemStorage implements IStorage {
   private patients: Map<string, Patient>;
   private users: Map<string, User>;
+  private dailyProgressEntries: Map<string, DailyProgress>;
 
   constructor() {
     this.patients = new Map();
     this.users = new Map();
+    this.dailyProgressEntries = new Map();
     // Start cleanup interval for expired patients (run every hour)
     setInterval(() => this.cleanupExpiredPatients(), 60 * 60 * 1000);
   }
@@ -142,6 +147,25 @@ export class MemStorage implements IStorage {
     this.users.set(user.id, user);
     return user;
   }
+
+  async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
+    return Array.from(this.dailyProgressEntries.values())
+      .filter(progress => progress.patientId === patientId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  async createDailyProgress(progressData: InsertDailyProgress): Promise<DailyProgress> {
+    const id = randomUUID();
+    const now = new Date();
+    const progress: DailyProgress = {
+      ...progressData,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.dailyProgressEntries.set(id, progress);
+    return progress;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -195,7 +219,7 @@ export class DatabaseStorage implements IStorage {
 
   async permanentlyDeletePatient(id: string): Promise<boolean> {
     const result = await db.delete(patients).where(eq(patients.id, id));
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   }
 
   async cleanupExpiredPatients(): Promise<void> {
@@ -223,6 +247,23 @@ export class DatabaseStorage implements IStorage {
       .values(userData)
       .returning();
     return user;
+  }
+
+  async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
+    const progress = await db
+      .select()
+      .from(dailyProgress)
+      .where(eq(dailyProgress.patientId, patientId))
+      .orderBy(dailyProgress.date);
+    return progress;
+  }
+
+  async createDailyProgress(progressData: InsertDailyProgress): Promise<DailyProgress> {
+    const [progress] = await db
+      .insert(dailyProgress)
+      .values(progressData)
+      .returning();
+    return progress;
   }
 }
 

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Patient, UpdatePatient } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Save, Trash2, Edit, X } from "lucide-react";
+import { ChevronDown, Save, Trash2, Edit, X, Plus } from "lucide-react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -45,6 +46,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
 
   const updateMutation = useMutation({
     mutationFn: async (updates: UpdatePatient) => {
@@ -348,6 +350,17 @@ export default function PatientCard({ patient }: PatientCardProps) {
           
           <div className="flex justify-between items-center pt-4 border-t border-border">
             <div className="flex space-x-2">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/patient/${patient.id}`);
+                }}
+                variant="outline"
+                size="sm"
+                data-testid={`button-details-${patient.id}`}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
               {!isEditing ? (
                 <Button
                   onClick={handleEdit}
