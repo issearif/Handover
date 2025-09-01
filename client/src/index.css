@@ -131,6 +131,24 @@
   .archive-badge {
     @apply bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full;
   }
+  
+  .fullscreen-dialog {
+    @apply max-w-none w-[95vw] h-[95vh];
+  }
+  
+  .fullscreen-content-section {
+    @apply bg-gradient-to-br from-muted/20 to-muted/40 rounded-xl p-6 border border-border/50;
+    backdrop-filter: blur(10px);
+  }
+  
+  .fullscreen-content-section h3 {
+    @apply text-lg font-semibold mb-4 text-primary border-b border-primary/20 pb-2;
+  }
+  
+  .fullscreen-content-text {
+    @apply text-sm leading-relaxed text-foreground/90;
+    line-height: 1.6;
+  }
 }
 
 .dark .status-stable {
