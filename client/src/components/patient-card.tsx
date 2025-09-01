@@ -355,8 +355,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   size="sm"
                   data-testid={`button-edit-${patient.id}`}
                 >
-                  <Edit className="mr-1 h-3 w-3" />
-                  Edit
+                  <Edit className="h-4 w-4" />
                 </Button>
               ) : (
                 <Button
@@ -365,8 +364,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   size="sm"
                   data-testid={`button-cancel-${patient.id}`}
                 >
-                  <X className="mr-1 h-3 w-3" />
-                  Cancel
+                  <X className="h-4 w-4" />
                 </Button>
               )}
               
@@ -374,11 +372,11 @@ export default function PatientCard({ patient }: PatientCardProps) {
                 <Button 
                   onClick={handleSave}
                   disabled={updateMutation.isPending}
+                  size="sm"
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                   data-testid={`button-save-${patient.id}`}
                 >
-                  <Save className="mr-2 h-4 w-4" />
-                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                  <Save className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -391,8 +389,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   className="text-destructive hover:bg-destructive/10"
                   data-testid={`button-delete-${patient.id}`}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Patient
+                  <Trash2 className="h-4 w-4" />
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent data-testid="delete-confirmation-modal">
@@ -413,7 +410,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                     data-testid="button-confirm-delete"
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    {deleteMutation.isPending ? "Deleting..." : "Delete Patient"}
+                    {deleteMutation.isPending ? "Deleting..." : "Delete"}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
