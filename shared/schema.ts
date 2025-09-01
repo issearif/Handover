@@ -77,3 +77,28 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Daily progress table for patient tracking
+export const dailyProgress = pgTable("daily_progress", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  date: text("date").notNull(), // YYYY-MM-DD format
+  notes: text("notes").notNull(),
+  vitals: text("vitals"),
+  medications: text("medications"),
+  tasks: text("tasks"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("IDX_daily_progress_patient_id").on(table.patientId),
+  index("IDX_daily_progress_date").on(table.date),
+]);
+
+export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
+export type DailyProgress = typeof dailyProgress.$inferSelect;
