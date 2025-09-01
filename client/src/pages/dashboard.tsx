@@ -92,18 +92,23 @@ export default function Dashboard() {
                 return (
                   <div key={department} className="space-y-4" data-testid={`department-${department}`}>
                 {/* Department Header */}
-                <div className="border-b border-border pb-2">
-                  <h3 className="text-lg font-semibold text-foreground flex items-center">
-                    <span className="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mr-3">
-                      {department}
-                    </span>
-                    <span className="text-muted-foreground">
+                <div className="border-b border-border pb-3 mb-2">
+                  <div className="flex items-center justify-center relative">
+                    <div className={`
+                      px-6 py-3 rounded-lg font-semibold text-lg shadow-sm border
+                      ${department === 'MW' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800' :
+                        department === 'PVT' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800' :
+                        department === 'GW' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-800' :
+                        department === 'SW' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800' :
+                        department === 'ER' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800' :
+                        'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-800'}
+                    `}>
                       {departmentLabels[department as keyof typeof departmentLabels] || department}
-                    </span>
-                    <span className="ml-auto text-sm text-muted-foreground">
+                    </div>
+                    <span className="absolute right-0 text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
                       {deptPatients.length} patient{deptPatients.length !== 1 ? 's' : ''}
                     </span>
-                  </h3>
+                  </div>
                 </div>
                 
                 {/* Department Patient Cards */}
