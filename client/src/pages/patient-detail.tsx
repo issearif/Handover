@@ -514,6 +514,21 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.medications || "No medications listed"}</p>
                 )}
               </div>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Label className="text-sm font-medium text-muted-foreground">History of Present Illness</Label>
+                {isEditingPatient ? (
+                  <Textarea
+                    value={editedPatient.historyOfPresentIllness || patient.historyOfPresentIllness || ""}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, historyOfPresentIllness: e.target.value })}
+                    className="text-sm"
+                    rows={3}
+                    placeholder="Enter history of present illness..."
+                    data-testid="textarea-edit-history"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.historyOfPresentIllness || "No history of present illness recorded"}</p>
+                )}
+              </div>
               </div>
             </CardContent>
           )}

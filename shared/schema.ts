@@ -14,6 +14,7 @@ export const patients = pgTable("patients", {
   diagnosis: text("diagnosis").notNull(),
   doa: text("doa").notNull(), // Date of admission
   medications: text("medications").default(""),
+  historyOfPresentIllness: text("history_of_present_illness").default(""),
   tasks: text("tasks").default(""),
   notes: text("notes").default(""),
   isDeleted: boolean("is_deleted").default(false),
