@@ -342,9 +342,23 @@ export default function PatientDetail() {
                     {patient.name}
                   </CardTitle>
                 ) : (
-                  <CardTitle className="text-base">
-                    {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
-                  </CardTitle>
+                  <div className="space-y-1">
+                    <CardTitle className="text-base">
+                      {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
+                    </CardTitle>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      {patient.medications && patient.medications.length > 0 && (
+                        <div>
+                          <span className="font-medium">Medications:</span> {patient.medications.join(", ")}
+                        </div>
+                      )}
+                      {patient.presentingComplaints && (
+                        <div>
+                          <span className="font-medium">Presenting Complaints:</span> {patient.presentingComplaints}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
               <div className="flex items-center space-x-2">
