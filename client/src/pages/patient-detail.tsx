@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Edit2, Check, X } from "lucide-react";
+import { Edit2, Check, X, ArrowLeft } from "lucide-react";
 
 interface DailyProgress {
   id: string;
@@ -42,7 +42,7 @@ export default function PatientDetail() {
   const [editingProgress, setEditingProgress] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState("");
   const [isEditingPatient, setIsEditingPatient] = useState(false);
-  const [editedPatient, setEditedPatient] = useState<any>({});
+  const [editedPatient, setEditedPatient] = useState<Partial<Patient>>({});
 
   const {
     data: patient,
@@ -107,7 +107,7 @@ export default function PatientDetail() {
   });
 
   const updatePatientMutation = useMutation({
-    mutationFn: async (patientData: any) => {
+    mutationFn: async (patientData: Partial<Patient> & { id: string }) => {
       const response = await apiRequest("PATCH", `/api/patients/${patientData.id}`, patientData);
       return response.json();
     },
@@ -225,9 +225,10 @@ export default function PatientDetail() {
             <Button
               onClick={() => navigate("/")}
               variant="ghost"
+              size="sm"
               data-testid="back-button"
             >
-              Back to Dashboard
+              <ArrowLeft className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -245,16 +246,18 @@ export default function PatientDetail() {
       {/* Frozen Ward/Bed Header */}
       <div className="sticky top-0 z-50 bg-background border-b border-border px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">
-            {patient?.department && patient?.bed ? `${patient.department}-${patient.bed}` : 'Ward-Bed'}
-          </h1>
           <Button
             onClick={() => navigate("/")}
             variant="ghost"
+            size="sm"
             data-testid="back-button"
           >
-            Back to Dashboard
+            <ArrowLeft className="h-4 w-4" />
           </Button>
+          <h1 className="text-2xl font-bold text-foreground text-center flex-1">
+            {patient?.department && patient?.bed ? `${patient.department}-${patient.bed} (DOA ${calculateDaysSinceAdmission(patient.doa)})` : 'Ward-Bed (DOA -)'}
+          </h1>
+          <div className="w-10"></div>
         </div>
       </div>
 
