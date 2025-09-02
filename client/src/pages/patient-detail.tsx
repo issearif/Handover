@@ -331,40 +331,6 @@ export default function PatientDetail() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Patient Information Card */}
         <Card className="mb-6" data-testid="patient-info-card">
-          {/* Ward/Bed Header Section */}
-          <div className="bg-blue-100 dark:bg-blue-900 border-b px-6 py-3">
-            <div className="text-center">
-              {isEditingPatient ? (
-                <div className="flex space-x-2 justify-center">
-                  <select
-                    value={editedPatient.department || patient.department}
-                    onChange={(e) => setEditedPatient({ ...editedPatient, department: e.target.value })}
-                    className="text-lg font-bold bg-blue-200 dark:bg-blue-800 border rounded px-2 py-1 text-blue-800 dark:text-blue-200"
-                    data-testid="select-edit-department-header"
-                  >
-                    <option value="MW">MW</option>
-                    <option value="PVT">PVT</option>
-                    <option value="GW">GW</option>
-                    <option value="SW">SW</option>
-                    <option value="ER">ER</option>
-                  </select>
-                  <span className="text-lg font-bold text-blue-800 dark:text-blue-200">-</span>
-                  <Input
-                    value={editedPatient.bed || patient.bed}
-                    onChange={(e) => setEditedPatient({ ...editedPatient, bed: e.target.value })}
-                    className="text-lg font-bold bg-blue-200 dark:bg-blue-800 border text-blue-800 dark:text-blue-200 w-16 text-center"
-                    placeholder="Bed"
-                    data-testid="input-edit-bed-header"
-                  />
-                </div>
-              ) : (
-                <h2 className="text-lg font-bold text-blue-800 dark:text-blue-200">
-                  {patient.department}-{patient.bed}
-                </h2>
-              )}
-            </div>
-          </div>
-          
           <CardHeader 
             className="cursor-pointer"
             onClick={() => setIsPatientDetailsExpanded(!isPatientDetailsExpanded)}
@@ -475,6 +441,34 @@ export default function PatientDetail() {
                   </select>
                 ) : (
                   <p className="text-sm">{patient.sex}</p>
+                )}
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Ward/Bed</Label>
+                {isEditingPatient ? (
+                  <div className="flex space-x-2">
+                    <select
+                      value={editedPatient.department || patient.department}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, department: e.target.value })}
+                      className="text-sm border rounded px-2 py-1 flex-1"
+                      data-testid="select-edit-department"
+                    >
+                      <option value="MW">MW</option>
+                      <option value="PVT">PVT</option>
+                      <option value="GW">GW</option>
+                      <option value="SW">SW</option>
+                      <option value="ER">ER</option>
+                    </select>
+                    <Input
+                      value={editedPatient.bed || patient.bed}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, bed: e.target.value })}
+                      className="text-sm flex-1"
+                      placeholder="Bed"
+                      data-testid="input-edit-bed"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm">{patient.department}-{patient.bed}</p>
                 )}
               </div>
               <div>
