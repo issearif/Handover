@@ -178,6 +178,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete daily progress entry for a patient (protected)
+  app.delete("/api/patients/:patientId/progress/:id", isAuthenticated, async (req, res) => {
+    try {
+      const success = await storage.deleteDailyProgress(req.params.id);
+      if (!success) {
+        return res.status(404).json({ message: "Progress entry not found" });
+      }
+      res.json({ message: "Progress entry deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting daily progress:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
