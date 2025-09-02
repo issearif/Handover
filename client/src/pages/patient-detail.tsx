@@ -1,16 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRoute, useLocation } from "wouter";
-import { Patient } from "@shared/schema";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, User, Stethoscope, Pill, ClipboardList, FileText, Edit2, Check, X } from "lucide-react";
 import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { useParams, useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Edit2, Check, X } from "lucide-react";
 
 interface DailyProgress {
   id: string;
@@ -20,22 +19,44 @@ interface DailyProgress {
   createdAt: string;
 }
 
+interface Patient {
+  id: string;
+  name: string;
+  mrn: string;
+  age: string;
+  sex: string;
+  department: string;
+  bed: string;
+  diagnosis: string;
+  doa: string;
+  medications?: string;
+  tasks?: string;
+  notes?: string;
+}
+
 export default function PatientDetail() {
-  const [, params] = useRoute("/patient/:id");
+  const params = useParams();
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
   const [newProgressNote, setNewProgressNote] = useState("");
   const [editingProgress, setEditingProgress] = useState<string | null>(null);
   const [editedNote, setEditedNote] = useState("");
+  const [isEditingPatient, setIsEditingPatient] = useState(false);
+  const [editedPatient, setEditedPatient] = useState<any>({});
 
-  const { data: patient, isLoading: patientLoading } = useQuery<Patient>({
+  const {
+    data: patient,
+    isLoading: patientLoading,
+    error: patientError,
+  } = useQuery({
     queryKey: ["/api/patients", params?.id],
     enabled: !!params?.id,
   });
 
-  const { data: progressEntries = [], isLoading: progressLoading } = useQuery<DailyProgress[]>({
+  const {
+    data: progressData,
+    isLoading: progressLoading,
+  } = useQuery({
     queryKey: ["/api/patients", params?.id, "progress"],
     enabled: !!params?.id,
   });
@@ -56,7 +77,7 @@ export default function PatientDetail() {
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to add progress entry",
+        description: error.message || "Failed to add progress",
         variant: "destructive",
       });
     },
@@ -80,6 +101,29 @@ export default function PatientDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to update progress note",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updatePatientMutation = useMutation({
+    mutationFn: async (patientData: any) => {
+      const response = await apiRequest("PATCH", `/api/patients/${patientData.id}`, patientData);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id] });
+      setIsEditingPatient(false);
+      setEditedPatient({});
+      toast({
+        title: "Patient updated",
+        description: "Patient information has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update patient information",
         variant: "destructive",
       });
     },
@@ -128,6 +172,23 @@ export default function PatientDetail() {
     setEditedNote("");
   };
 
+  const handleEditPatient = () => {
+    setIsEditingPatient(true);
+    setEditedPatient({ ...patient });
+  };
+
+  const handleSavePatient = () => {
+    updatePatientMutation.mutate({
+      id: patient!.id,
+      ...editedPatient,
+    });
+  };
+
+  const handleCancelEditPatient = () => {
+    setIsEditingPatient(false);
+    setEditedPatient({});
+  };
+
   const calculateDaysSinceAdmission = (doa: string) => {
     const admissionDate = new Date(doa);
     const today = new Date();
@@ -139,6 +200,12 @@ export default function PatientDetail() {
   if (patientLoading) {
     return (
       <div className="min-h-screen bg-background">
+        {/* Frozen Ward/Bed Header */}
+        <div className="sticky top-0 z-50 bg-background border-b border-border px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-4xl mx-auto">
+            <Skeleton className="h-8 w-24" />
+          </div>
+        </div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Skeleton className="h-8 w-32 mb-6" />
           <Skeleton className="h-64 w-full mb-6" />
@@ -151,16 +218,20 @@ export default function PatientDetail() {
   if (!patient) {
     return (
       <div className="min-h-screen bg-background">
+        {/* Frozen Ward/Bed Header */}
+        <div className="sticky top-0 z-50 bg-background border-b border-border px-4 sm:px-6 lg:px-8 py-4">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-foreground">Ward-Bed</h1>
+            <Button
+              onClick={() => navigate("/")}
+              variant="ghost"
+              data-testid="back-button"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Button
-            onClick={() => navigate("/")}
-            variant="ghost"
-            className="mb-4"
-            data-testid="back-button"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Button>
           <div className="text-center py-8">
             <p className="text-destructive">Patient not found</p>
           </div>
@@ -171,78 +242,201 @@ export default function PatientDetail() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back Button */}
-        <Button
-          onClick={() => navigate("/")}
-          variant="ghost"
-          className="mb-6"
-          data-testid="back-button"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
-        </Button>
+      {/* Frozen Ward/Bed Header */}
+      <div className="sticky top-0 z-50 bg-background border-b border-border px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">
+            {patient?.department && patient?.bed ? `${patient.department}-${patient.bed}` : 'Ward-Bed'}
+          </h1>
+          <Button
+            onClick={() => navigate("/")}
+            variant="ghost"
+            data-testid="back-button"
+          >
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
 
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Patient Information Card */}
         <Card className="mb-6" data-testid="patient-info-card">
           <CardHeader>
-            <CardTitle className="flex items-center text-xl">
-              <User className="mr-2 h-5 w-5" />
-              {patient.name}
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl">
+                {patient.name}
+              </CardTitle>
+              {!isEditingPatient ? (
+                <Button
+                  onClick={handleEditPatient}
+                  variant="ghost"
+                  size="sm"
+                  data-testid="button-edit-patient"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              ) : (
+                <div className="flex space-x-2">
+                  <Button
+                    onClick={handleSavePatient}
+                    disabled={updatePatientMutation.isPending}
+                    size="sm"
+                    data-testid="button-save-patient"
+                  >
+                    <Check className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={handleCancelEditPatient}
+                    variant="ghost"
+                    size="sm"
+                    data-testid="button-cancel-edit-patient"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">ID Number</Label>
-                <p className="font-medium">{patient.mrn}</p>
+                <Label className="text-sm font-medium text-muted-foreground">MRN</Label>
+                {isEditingPatient ? (
+                  <Input
+                    value={editedPatient.mrn || patient.mrn}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, mrn: e.target.value })}
+                    className="text-sm font-mono"
+                    data-testid="input-edit-mrn"
+                  />
+                ) : (
+                  <p className="text-sm font-mono">{patient.mrn}</p>
+                )}
               </div>
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Age/Sex</Label>
-                <p className="font-medium">{patient.age}/{patient.sex}</p>
+                <Label className="text-sm font-medium text-muted-foreground">Age</Label>
+                {isEditingPatient ? (
+                  <Input
+                    type="number"
+                    value={editedPatient.age || patient.age}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, age: e.target.value })}
+                    className="text-sm"
+                    data-testid="input-edit-age"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.age} years</p>
+                )}
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Sex</Label>
+                {isEditingPatient ? (
+                  <select
+                    value={editedPatient.sex || patient.sex}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, sex: e.target.value })}
+                    className="text-sm border rounded px-2 py-1 w-full"
+                    data-testid="select-edit-sex"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                ) : (
+                  <p className="text-sm">{patient.sex}</p>
+                )}
               </div>
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Ward/Bed</Label>
-                <p className="font-medium">{patient.department}-{patient.bed}</p>
+                {isEditingPatient ? (
+                  <div className="flex space-x-2">
+                    <select
+                      value={editedPatient.department || patient.department}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, department: e.target.value })}
+                      className="text-sm border rounded px-2 py-1 flex-1"
+                      data-testid="select-edit-department"
+                    >
+                      <option value="MW">MW</option>
+                      <option value="PVT">PVT</option>
+                      <option value="GW">GW</option>
+                      <option value="SW">SW</option>
+                      <option value="ER">ER</option>
+                    </select>
+                    <Input
+                      value={editedPatient.bed || patient.bed}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, bed: e.target.value })}
+                      className="text-sm flex-1"
+                      placeholder="Bed"
+                      data-testid="input-edit-bed"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-sm">{patient.department}-{patient.bed}</p>
+                )}
               </div>
-              <div className="md:col-span-2">
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Status</Label>
+                <p className="text-sm">Active</p>
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">Days Since Admission</Label>
+                <p className="text-sm">{calculateDaysSinceAdmission(patient.doa)} days</p>
+              </div>
+              <div className="md:col-span-2 lg:col-span-3">
                 <Label className="text-sm font-medium text-muted-foreground">Diagnosis</Label>
-                <p className="font-medium">{patient.diagnosis}</p>
+                {isEditingPatient ? (
+                  <Textarea
+                    value={editedPatient.diagnosis || patient.diagnosis}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, diagnosis: e.target.value })}
+                    className="text-sm"
+                    rows={2}
+                    data-testid="textarea-edit-diagnosis"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.diagnosis}</p>
+                )}
               </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground flex items-center">
-                  <Calendar className="mr-1 h-4 w-4" />
-                  Date of Admission
-                </Label>
-                <p className="font-medium">{patient.doa}</p>
-                <p className="text-sm text-muted-foreground">
-                  Day {calculateDaysSinceAdmission(patient.doa)} of admission
-                </p>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Label className="text-sm font-medium text-muted-foreground">Medications</Label>
+                {isEditingPatient ? (
+                  <Textarea
+                    value={editedPatient.medications || patient.medications || ""}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, medications: e.target.value })}
+                    className="text-sm"
+                    rows={2}
+                    placeholder="None listed"
+                    data-testid="textarea-edit-medications"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.medications || "None listed"}</p>
+                )}
               </div>
-            </div>
-            
-            {/* Current Medical Information */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6 pt-6 border-t">
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground flex items-center">
-                  <Pill className="mr-1 h-4 w-4" />
-                  Current Medications
-                </Label>
-                <p className="text-sm mt-1">{patient.medications || "None recorded"}</p>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Label className="text-sm font-medium text-muted-foreground">Tasks</Label>
+                {isEditingPatient ? (
+                  <Textarea
+                    value={editedPatient.tasks || patient.tasks || ""}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, tasks: e.target.value })}
+                    className="text-sm"
+                    rows={2}
+                    placeholder="None listed"
+                    data-testid="textarea-edit-tasks"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.tasks || "None listed"}</p>
+                )}
               </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground flex items-center">
-                  <ClipboardList className="mr-1 h-4 w-4" />
-                  Current Tasks
-                </Label>
-                <p className="text-sm mt-1">{patient.tasks || "None recorded"}</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground flex items-center">
-                  <FileText className="mr-1 h-4 w-4" />
-                  Notes
-                </Label>
-                <p className="text-sm mt-1">{patient.notes || "None recorded"}</p>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Label className="text-sm font-medium text-muted-foreground">Notes</Label>
+                {isEditingPatient ? (
+                  <Textarea
+                    value={editedPatient.notes || patient.notes || ""}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, notes: e.target.value })}
+                    className="text-sm"
+                    rows={2}
+                    placeholder="No additional notes"
+                    data-testid="textarea-edit-notes"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.notes || "No additional notes"}</p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -251,10 +445,7 @@ export default function PatientDetail() {
         {/* Add Daily Progress */}
         <Card className="mb-6" data-testid="add-progress-card">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Plus className="mr-2 h-5 w-5" />
-              Add Daily Progress
-            </CardTitle>
+            <CardTitle>Add Daily Progress</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -273,12 +464,10 @@ export default function PatientDetail() {
 
             <Button
               onClick={handleAddProgress}
-              disabled={addProgressMutation.isPending || !newProgressNote.trim()}
-              className="w-full sm:w-auto"
+              disabled={addProgressMutation.isPending}
               data-testid="button-add-progress"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              {addProgressMutation.isPending ? "Adding..." : "Add Progress Entry"}
+              {addProgressMutation.isPending ? "Adding..." : "Add Progress"}
             </Button>
           </CardContent>
         </Card>
@@ -286,98 +475,89 @@ export default function PatientDetail() {
         {/* Daily Progress History */}
         <Card data-testid="progress-history-card">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <Stethoscope className="mr-2 h-5 w-5" />
-              Daily Progress History
-            </CardTitle>
+            <CardTitle>Daily Progress History</CardTitle>
           </CardHeader>
           <CardContent>
             {progressLoading ? (
               <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-24 w-full" />
-                ))}
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
               </div>
-            ) : progressEntries.length === 0 ? (
-              <p className="text-muted-foreground text-center py-8">
-                No progress entries recorded yet. Add the first entry above.
-              </p>
-            ) : (
+            ) : progressData && progressData.length > 0 ? (
               <div className="space-y-4">
-                {progressEntries
-                  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                  .map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="border border-border rounded-lg p-4 bg-muted/20"
-                      data-testid={`progress-entry-${entry.id}`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="font-medium text-foreground">
-                          {new Date(entry.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Added: {new Date(entry.createdAt).toLocaleDateString()}
-                        </div>
+                {progressData.map((entry: DailyProgress) => (
+                  <div key={entry.id} className="border border-border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {new Date(entry.date).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                        })}
                       </div>
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <Label className="text-xs font-medium text-muted-foreground">Progress Notes</Label>
-                            {editingProgress === entry.id ? (
-                              <div className="mt-1">
-                                <Textarea
-                                  value={editedNote}
-                                  onChange={(e) => setEditedNote(e.target.value)}
-                                  rows={3}
-                                  className="text-sm"
-                                  data-testid={`textarea-edit-${entry.id}`}
-                                />
-                                <div className="flex space-x-2 mt-2">
-                                  <Button
-                                    onClick={handleSaveEdit}
-                                    disabled={editProgressMutation.isPending}
-                                    size="sm"
-                                    data-testid={`button-save-edit-${entry.id}`}
-                                  >
-                                    <Check className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    onClick={handleCancelEdit}
-                                    variant="ghost"
-                                    size="sm"
-                                    data-testid={`button-cancel-edit-${entry.id}`}
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              <p className="text-sm mt-1">{entry.notes}</p>
-                            )}
-                          </div>
-                          {editingProgress !== entry.id && (
-                            <Button
-                              onClick={() => handleEditProgress(entry)}
-                              variant="ghost"
-                              size="sm"
-                              className="ml-2"
-                              data-testid={`button-edit-progress-${entry.id}`}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(entry.createdAt).toLocaleTimeString()}
                       </div>
                     </div>
-                  ))}
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <Label className="text-xs font-medium text-muted-foreground">Progress Notes</Label>
+                          {editingProgress === entry.id ? (
+                            <div className="mt-1">
+                              <Textarea
+                                value={editedNote}
+                                onChange={(e) => setEditedNote(e.target.value)}
+                                rows={3}
+                                className="text-sm"
+                                data-testid={`textarea-edit-${entry.id}`}
+                              />
+                              <div className="flex space-x-2 mt-2">
+                                <Button
+                                  onClick={handleSaveEdit}
+                                  disabled={editProgressMutation.isPending}
+                                  size="sm"
+                                  data-testid={`button-save-edit-${entry.id}`}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={handleCancelEdit}
+                                  variant="ghost"
+                                  size="sm"
+                                  data-testid={`button-cancel-edit-${entry.id}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm mt-1">{entry.notes}</p>
+                          )}
+                        </div>
+                        {editingProgress !== entry.id && (
+                          <Button
+                            onClick={() => handleEditProgress(entry)}
+                            variant="ghost"
+                            size="sm"
+                            className="ml-2"
+                            data-testid={`button-edit-progress-${entry.id}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                No progress entries yet. Add the first entry above.
+              </p>
             )}
           </CardContent>
         </Card>
