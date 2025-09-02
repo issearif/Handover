@@ -342,23 +342,9 @@ export default function PatientDetail() {
                     {patient.name}
                   </CardTitle>
                 ) : (
-                  <div className="space-y-1">
-                    <CardTitle className="text-base">
-                      {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
-                    </CardTitle>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      {patient.medications && patient.medications.trim() && (
-                        <div>
-                          <span className="font-medium">Medications:</span> {patient.medications}
-                        </div>
-                      )}
-                      {patient.notes && patient.notes.trim() && (
-                        <div>
-                          <span className="font-medium">Notes:</span> {patient.notes}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <CardTitle className="text-base">
+                    {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
+                  </CardTitle>
                 )}
               </div>
               <div className="flex items-center space-x-2">
