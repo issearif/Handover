@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertPatientSchema, updatePatientSchema, insertDailyProgressSchema } from "@shared/schema";
+import { insertPatientSchema, updatePatientSchema, insertDailyProgressSchema, updateDailyProgressSchema } from "@shared/schema";
 import { setupAuth, isAuthenticated } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -153,6 +153,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       console.error("Error creating daily progress:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // Update daily progress for a patient (protected)
+  app.patch("/api/patients/:patientId/progress/:id", isAuthenticated, async (req, res) => {
+    try {
+      const validatedData = updateDailyProgressSchema.parse(req.body);
+      const progress = await storage.updateDailyProgress(req.params.id, validatedData);
+      if (!progress) {
+        return res.status(404).json({ message: "Progress entry not found" });
+      }
+      res.json(progress);
+    } catch (error: any) {
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          message: "Validation error",
+          errors: error.errors
+        });
+      }
+      console.error("Error updating daily progress:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   });
