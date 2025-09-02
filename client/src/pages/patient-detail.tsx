@@ -517,10 +517,17 @@ export default function PatientDetail() {
                           year: "numeric",
                           month: "long",
                           day: "numeric",
+                          timeZone: "Indian/Maldives"
                         })}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {new Date(entry.createdAt).toLocaleTimeString()}
+                        {new Date(entry.createdAt).toLocaleString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          timeZone: "Indian/Maldives",
+                          hour12: true
+                        })}
                       </div>
                     </div>
                     
