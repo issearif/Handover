@@ -537,7 +537,7 @@ export default function PatientDetail() {
         {/* Prepare for Discharge Button */}
         <div className="flex justify-end mb-6">
           <Button 
-            onClick={() => navigate(`/discharge-summary/${patientId}`)}
+            onClick={() => navigate(`/discharge-summary/${params?.id}`)}
             className="bg-blue-600 hover:bg-blue-700"
             data-testid="prepare-discharge-button"
           >
