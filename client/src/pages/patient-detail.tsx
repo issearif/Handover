@@ -534,17 +534,6 @@ export default function PatientDetail() {
           )}
         </Card>
 
-        {/* Prepare for Discharge Button */}
-        <div className="flex justify-end mb-6">
-          <Button 
-            onClick={() => navigate(`/discharge-summary/${params?.id}`)}
-            className="bg-blue-600 hover:bg-blue-700"
-            data-testid="prepare-discharge-button"
-          >
-            Prepare for Discharge
-          </Button>
-        </div>
-
         {/* Daily Progress */}
         <Card className="mb-6" data-testid="add-progress-card">
           <CardHeader>
@@ -697,6 +686,17 @@ export default function PatientDetail() {
             )}
           </CardContent>
         </Card>
+
+        {/* Prepare for Discharge Button */}
+        <div className="flex justify-end mt-6">
+          <Button 
+            onClick={() => navigate(`/discharge-summary/${params?.id}`)}
+            className="bg-blue-600 hover:bg-blue-700"
+            data-testid="prepare-discharge-button"
+          >
+            Prepare for Discharge
+          </Button>
+        </div>
       </div>
     </div>
   );
