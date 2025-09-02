@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown } from "lucide-react";
+import { Patient, DailyProgress } from "@shared/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,28 +23,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface DailyProgress {
-  id: string;
-  patientId: string;
-  date: string;
-  notes: string;
-  createdAt: string;
-}
-
-interface Patient {
-  id: string;
-  name: string;
-  mrn: string;
-  age: string;
-  sex: string;
-  department: string;
-  bed: string;
-  diagnosis: string;
-  doa: string;
-  medications?: string;
-  tasks?: string;
-  notes?: string;
-}
 
 export default function PatientDetail() {
   const params = useParams();
@@ -60,7 +39,7 @@ export default function PatientDetail() {
     data: patient,
     isLoading: patientLoading,
     error: patientError,
-  } = useQuery({
+  } = useQuery<Patient>({
     queryKey: ["/api/patients", params?.id],
     enabled: !!params?.id,
   });
@@ -68,13 +47,13 @@ export default function PatientDetail() {
   const {
     data: progressData,
     isLoading: progressLoading,
-  } = useQuery({
+  } = useQuery<DailyProgress[]>({
     queryKey: ["/api/patients", params?.id, "progress"],
     enabled: !!params?.id,
   });
 
   const addProgressMutation = useMutation({
-    mutationFn: async (progressData: Omit<DailyProgress, "id" | "createdAt">) => {
+    mutationFn: async (progressData: { patientId: string; date: string; notes: string }) => {
       const response = await apiRequest("POST", `/api/patients/${params?.id}/progress`, progressData);
       return response.json();
     },
@@ -198,8 +177,17 @@ export default function PatientDetail() {
       timeZone: 'Indian/Maldives'
     });
     
+    if (!params?.id) {
+      toast({
+        title: "Error",
+        description: "Patient ID is missing",
+        variant: "destructive",
+      });
+      return;
+    }
+
     addProgressMutation.mutate({
-      patientId: params!.id,
+      patientId: params.id,
       date: maldivesDate,
       notes: newProgressNote,
     });
@@ -232,13 +220,15 @@ export default function PatientDetail() {
   };
 
   const handleEditPatient = () => {
+    if (!patient) return;
     setIsEditingPatient(true);
     setEditedPatient({ ...patient });
   };
 
   const handleSavePatient = () => {
+    if (!patient?.id) return;
     updatePatientMutation.mutate({
-      id: patient!.id,
+      id: patient.id,
       ...editedPatient,
     });
   };
@@ -573,13 +563,13 @@ export default function PatientDetail() {
                 <Skeleton className="h-16 w-full" />
                 <Skeleton className="h-16 w-full" />
               </div>
-            ) : progressData && progressData.length > 0 ? (
+            ) : progressData && Array.isArray(progressData) && progressData.length > 0 ? (
               <div className="space-y-4">
-                {progressData.map((entry: DailyProgress) => (
+                {progressData?.map((entry: DailyProgress) => (
                   <div key={entry.id} className="border border-border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-sm font-medium text-muted-foreground">
-                        {new Date(entry.date).toLocaleDateString("en-US", {
+                        {new Date(entry.date || new Date()).toLocaleDateString("en-US", {
                           weekday: "long",
                           year: "numeric",
                           month: "long",

@@ -140,11 +140,31 @@ export default function PatientCard({ patient }: PatientCardProps) {
     setIsEditing(true);
   };
 
+  // Get department color based on patient's department
+  const getDepartmentColor = (dept: string) => {
+    switch (dept) {
+      case 'MW': return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700';
+      case 'PVT': return 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700';
+      case 'GW': return 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700';
+      case 'SW': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700';
+      case 'ER': return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700';
+    }
+  };
+
   return (
     <div 
       className="patient-card bg-card rounded-lg border border-border shadow-sm overflow-hidden"
       data-testid={`patient-card-${patient.id}`}
     >
+      {/* Ward/Bed Header - Separate colored box */}
+      <div className={`px-4 py-3 border-b border-border ${getDepartmentColor(patient.department)}`}>
+        <div className="text-center font-semibold text-lg" data-testid={`patient-ward-bed-${patient.id}`}>
+          {patient.department}-{patient.bed}
+        </div>
+      </div>
+      
+      {/* Patient Information */}
       <div 
         className="p-4 cursor-pointer" 
         onClick={toggleExpanded}
@@ -220,10 +240,10 @@ export default function PatientCard({ patient }: PatientCardProps) {
                 )}
               </div>
               
-              {/* Ward/Bed */}
-              <div>
-                <span className="text-muted-foreground">Ward/Bed:</span>
-                {isEditing && isExpanded ? (
+              {/* Ward/Bed - Now shown in edit mode only since it's displayed at top */}
+              {isEditing && isExpanded && (
+                <div>
+                  <span className="text-muted-foreground">Ward/Bed:</span>
                   <div className="mt-1 space-y-1">
                     <Select value={department} onValueChange={setDepartment}>
                       <SelectTrigger className="text-sm" data-testid={`select-edit-department-${patient.id}`}>
@@ -245,12 +265,8 @@ export default function PatientCard({ patient }: PatientCardProps) {
                       data-testid={`input-edit-bed-${patient.id}`}
                     />
                   </div>
-                ) : (
-                  <span className="ml-1 font-medium" data-testid={`patient-bed-${patient.id}`}>
-                    {patient.department}-{patient.bed}
-                  </span>
-                )}
-              </div>
+                </div>
+              )}
               
               {/* Diagnosis */}
               <div className="col-span-2">
