@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Edit2, Check, X, ArrowLeft, Trash2 } from "lucide-react";
+import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +54,7 @@ export default function PatientDetail() {
   const [editedNote, setEditedNote] = useState("");
   const [isEditingPatient, setIsEditingPatient] = useState(false);
   const [editedPatient, setEditedPatient] = useState<Partial<Patient>>({});
+  const [isPatientDetailsExpanded, setIsPatientDetailsExpanded] = useState(false);
 
   const {
     data: patient,
@@ -330,44 +331,74 @@ export default function PatientDetail() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Patient Information Card */}
         <Card className="mb-6" data-testid="patient-info-card">
-          <CardHeader>
+          <CardHeader 
+            className="cursor-pointer"
+            onClick={() => setIsPatientDetailsExpanded(!isPatientDetailsExpanded)}
+          >
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl">
-                {patient.name}
-              </CardTitle>
-              {!isEditingPatient ? (
-                <Button
-                  onClick={handleEditPatient}
-                  variant="ghost"
-                  size="sm"
-                  data-testid="button-edit-patient"
-                >
-                  <Edit2 className="h-4 w-4" />
-                </Button>
-              ) : (
-                <div className="flex space-x-2">
+              <div className="flex-1">
+                {isPatientDetailsExpanded ? (
+                  <CardTitle className="text-xl">
+                    {patient.name}
+                  </CardTitle>
+                ) : (
+                  <CardTitle className="text-base">
+                    {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
+                  </CardTitle>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                {isPatientDetailsExpanded && !isEditingPatient && (
                   <Button
-                    onClick={handleSavePatient}
-                    disabled={updatePatientMutation.isPending}
-                    size="sm"
-                    data-testid="button-save-patient"
-                  >
-                    <Check className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    onClick={handleCancelEditPatient}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditPatient();
+                    }}
                     variant="ghost"
                     size="sm"
-                    data-testid="button-cancel-edit-patient"
+                    data-testid="button-edit-patient"
                   >
-                    <X className="h-4 w-4" />
+                    <Edit2 className="h-4 w-4" />
                   </Button>
-                </div>
-              )}
+                )}
+                {isPatientDetailsExpanded && isEditingPatient && (
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSavePatient();
+                      }}
+                      disabled={updatePatientMutation.isPending}
+                      size="sm"
+                      data-testid="button-save-patient"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleCancelEditPatient();
+                      }}
+                      variant="ghost"
+                      size="sm"
+                      data-testid="button-cancel-edit-patient"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                <ChevronDown
+                  className={`h-4 w-4 transition-transform ${
+                    isPatientDetailsExpanded ? 'rotate-180' : ''
+                  }`}
+                  data-testid="expand-patient-details"
+                />
+              </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {isPatientDetailsExpanded && (
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">MRN</Label>
                 {isEditingPatient ? (
@@ -468,8 +499,9 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.diagnosis}</p>
                 )}
               </div>
-            </div>
-          </CardContent>
+              </div>
+            </CardContent>
+          )}
         </Card>
 
         {/* Daily Progress */}
