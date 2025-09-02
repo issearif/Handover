@@ -129,6 +129,27 @@ export default function PatientDetail() {
     },
   });
 
+  const deleteProgressMutation = useMutation({
+    mutationFn: async (progressId: string) => {
+      const response = await apiRequest("DELETE", `/api/patients/${params?.id}/progress/${progressId}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "progress"] });
+      toast({
+        title: "Progress entry deleted",
+        description: "Daily progress entry has been removed.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete progress entry",
+        variant: "destructive",
+      });
+    },
+  });
+
   const deletePatientMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("DELETE", `/api/patients/${params?.id}`);
@@ -404,12 +425,18 @@ export default function PatientDetail() {
                 )}
               </div>
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                <p className="text-sm">Active</p>
-              </div>
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Days Since Admission</Label>
-                <p className="text-sm">{calculateDaysSinceAdmission(patient.doa)} days</p>
+                <Label className="text-sm font-medium text-muted-foreground">Date of Admission</Label>
+                {isEditingPatient ? (
+                  <Input
+                    type="date"
+                    value={editedPatient.doa || patient.doa}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, doa: e.target.value })}
+                    className="text-sm"
+                    data-testid="input-edit-doa"
+                  />
+                ) : (
+                  <p className="text-sm">{new Date(patient.doa).toLocaleDateString()}</p>
+                )}
               </div>
               <div className="md:col-span-2 lg:col-span-3">
                 <Label className="text-sm font-medium text-muted-foreground">Diagnosis</Label>
@@ -492,9 +519,8 @@ export default function PatientDetail() {
                     <div className="space-y-2">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <Label className="text-xs font-medium text-muted-foreground">Progress Notes</Label>
                           {editingProgress === entry.id ? (
-                            <div className="mt-1">
+                            <div>
                               <Textarea
                                 value={editedNote}
                                 onChange={(e) => setEditedNote(e.target.value)}
@@ -522,19 +548,29 @@ export default function PatientDetail() {
                               </div>
                             </div>
                           ) : (
-                            <p className="text-sm mt-1">{entry.notes}</p>
+                            <p className="text-sm">{entry.notes}</p>
                           )}
                         </div>
                         {editingProgress !== entry.id && (
-                          <Button
-                            onClick={() => handleEditProgress(entry)}
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2"
-                            data-testid={`button-edit-progress-${entry.id}`}
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex space-x-1 ml-2">
+                            <Button
+                              onClick={() => handleEditProgress(entry)}
+                              variant="ghost"
+                              size="sm"
+                              data-testid={`button-edit-progress-${entry.id}`}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              onClick={() => deleteProgressMutation.mutate(entry.id)}
+                              variant="ghost"
+                              size="sm"
+                              disabled={deleteProgressMutation.isPending}
+                              data-testid={`button-delete-progress-${entry.id}`}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>

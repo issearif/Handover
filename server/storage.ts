@@ -21,6 +21,7 @@ export interface IStorage {
   getDailyProgress(patientId: string): Promise<DailyProgress[]>;
   createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
   updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined>;
+  deleteDailyProgress(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -181,6 +182,10 @@ export class MemStorage implements IStorage {
     this.dailyProgressEntries.set(id, updated);
     return updated;
   }
+
+  async deleteDailyProgress(id: string): Promise<boolean> {
+    return this.dailyProgressEntries.delete(id);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -288,6 +293,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(dailyProgress.id, id))
       .returning();
     return progress || undefined;
+  }
+
+  async deleteDailyProgress(id: string): Promise<boolean> {
+    const result = await db
+      .delete(dailyProgress)
+      .where(eq(dailyProgress.id, id))
+      .returning();
+    return result.length > 0;
   }
 }
 
