@@ -131,7 +131,8 @@ export default function PatientCard({ patient }: PatientCardProps) {
     if ((e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('input')) {
       return;
     }
-    setIsExpanded(!isExpanded);
+    // Navigate to patient detail page instead of expanding
+    navigate(`/patient/${patient.id}`);
   };
 
   const handleEdit = (e: React.MouseEvent) => {

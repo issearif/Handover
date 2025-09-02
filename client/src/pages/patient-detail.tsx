@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Edit2, Check, X, ArrowLeft } from "lucide-react";
+import { Edit2, Check, X, ArrowLeft, Trash2 } from "lucide-react";
 
 interface DailyProgress {
   id: string;
@@ -124,6 +124,27 @@ export default function PatientDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to update patient information",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deletePatientMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("DELETE", `/api/patients/${params?.id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Patient deleted",
+        description: "Patient has been successfully removed.",
+      });
+      navigate("/");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete patient",
         variant: "destructive",
       });
     },
@@ -257,7 +278,15 @@ export default function PatientDetail() {
           <h1 className="text-2xl font-bold text-foreground text-center flex-1">
             {patient?.department && patient?.bed ? `${patient.department}-${patient.bed} (DOA ${calculateDaysSinceAdmission(patient.doa)})` : 'Ward-Bed (DOA -)'}
           </h1>
-          <div className="w-10"></div>
+          <Button
+            onClick={() => deletePatientMutation.mutate()}
+            variant="ghost"
+            size="sm"
+            disabled={deletePatientMutation.isPending}
+            data-testid="delete-patient-button"
+          >
+            <Trash2 className="h-4 w-4 text-red-500" />
+          </Button>
         </div>
       </div>
 
