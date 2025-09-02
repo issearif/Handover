@@ -499,6 +499,21 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.diagnosis}</p>
                 )}
               </div>
+              <div className="md:col-span-2 lg:col-span-3">
+                <Label className="text-sm font-medium text-muted-foreground">Medications</Label>
+                {isEditingPatient ? (
+                  <Textarea
+                    value={editedPatient.medications || patient.medications || ""}
+                    onChange={(e) => setEditedPatient({ ...editedPatient, medications: e.target.value })}
+                    className="text-sm"
+                    rows={2}
+                    placeholder="List patient medications..."
+                    data-testid="textarea-edit-medications"
+                  />
+                ) : (
+                  <p className="text-sm">{patient.medications || "No medications listed"}</p>
+                )}
+              </div>
               </div>
             </CardContent>
           )}
