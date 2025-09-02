@@ -10,6 +10,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Edit2, Check, X, ArrowLeft, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface DailyProgress {
   id: string;
@@ -456,16 +467,13 @@ export default function PatientDetail() {
           </CardContent>
         </Card>
 
-        {/* Add Daily Progress */}
+        {/* Daily Progress */}
         <Card className="mb-6" data-testid="add-progress-card">
           <CardHeader>
-            <CardTitle>Add Daily Progress</CardTitle>
+            <CardTitle>Daily Progress</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="progress-notes" className="block text-sm font-medium mb-2">
-                Progress Notes *
-              </Label>
               <Textarea
                 id="progress-notes"
                 value={newProgressNote}
@@ -561,15 +569,35 @@ export default function PatientDetail() {
                             >
                               <Edit2 className="h-4 w-4" />
                             </Button>
-                            <Button
-                              onClick={() => deleteProgressMutation.mutate(entry.id)}
-                              variant="ghost"
-                              size="sm"
-                              disabled={deleteProgressMutation.isPending}
-                              data-testid={`button-delete-progress-${entry.id}`}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={deleteProgressMutation.isPending}
+                                  data-testid={`button-delete-progress-${entry.id}`}
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Progress Entry</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this progress entry? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => deleteProgressMutation.mutate(entry.id)}
+                                    className="bg-red-500 hover:bg-red-600"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         )}
                       </div>
