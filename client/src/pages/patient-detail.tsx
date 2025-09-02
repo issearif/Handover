@@ -396,51 +396,6 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.diagnosis}</p>
                 )}
               </div>
-              <div className="md:col-span-2 lg:col-span-3">
-                <Label className="text-sm font-medium text-muted-foreground">Medications</Label>
-                {isEditingPatient ? (
-                  <Textarea
-                    value={editedPatient.medications || patient.medications || ""}
-                    onChange={(e) => setEditedPatient({ ...editedPatient, medications: e.target.value })}
-                    className="text-sm"
-                    rows={2}
-                    placeholder="None listed"
-                    data-testid="textarea-edit-medications"
-                  />
-                ) : (
-                  <p className="text-sm">{patient.medications || "None listed"}</p>
-                )}
-              </div>
-              <div className="md:col-span-2 lg:col-span-3">
-                <Label className="text-sm font-medium text-muted-foreground">Tasks</Label>
-                {isEditingPatient ? (
-                  <Textarea
-                    value={editedPatient.tasks || patient.tasks || ""}
-                    onChange={(e) => setEditedPatient({ ...editedPatient, tasks: e.target.value })}
-                    className="text-sm"
-                    rows={2}
-                    placeholder="None listed"
-                    data-testid="textarea-edit-tasks"
-                  />
-                ) : (
-                  <p className="text-sm">{patient.tasks || "None listed"}</p>
-                )}
-              </div>
-              <div className="md:col-span-2 lg:col-span-3">
-                <Label className="text-sm font-medium text-muted-foreground">Notes</Label>
-                {isEditingPatient ? (
-                  <Textarea
-                    value={editedPatient.notes || patient.notes || ""}
-                    onChange={(e) => setEditedPatient({ ...editedPatient, notes: e.target.value })}
-                    className="text-sm"
-                    rows={2}
-                    placeholder="No additional notes"
-                    data-testid="textarea-edit-notes"
-                  />
-                ) : (
-                  <p className="text-sm">{patient.notes || "No additional notes"}</p>
-                )}
-              </div>
             </div>
           </CardContent>
         </Card>
