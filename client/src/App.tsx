@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/dashboard";
 import Archive from "@/pages/archive";
 import PatientDetail from "@/pages/patient-detail";
+import DischargeSummary from "@/pages/discharge-summary";
 import AuthPage from "@/pages/AuthPage";
 import NotFound from "@/pages/not-found";
 
@@ -22,6 +23,7 @@ function Router() {
           <Route path="/" component={Dashboard} />
           <Route path="/archive" component={Archive} />
           <Route path="/patient/:id" component={PatientDetail} />
+          <Route path="/discharge-summary/:patientId" component={DischargeSummary} />
         </>
       )}
       <Route component={NotFound} />
