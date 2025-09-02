@@ -20,6 +20,7 @@ export interface IStorage {
   // Daily progress operations
   getDailyProgress(patientId: string): Promise<DailyProgress[]>;
   createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
+  updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -166,6 +167,20 @@ export class MemStorage implements IStorage {
     this.dailyProgressEntries.set(id, progress);
     return progress;
   }
+
+  async updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined> {
+    const existing = this.dailyProgressEntries.get(id);
+    if (!existing) {
+      return undefined;
+    }
+    const updated: DailyProgress = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.dailyProgressEntries.set(id, updated);
+    return updated;
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -264,6 +279,15 @@ export class DatabaseStorage implements IStorage {
       .values(progressData)
       .returning();
     return progress;
+  }
+
+  async updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined> {
+    const [progress] = await db
+      .update(dailyProgress)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(dailyProgress.id, id))
+      .returning();
+    return progress || undefined;
   }
 }
 

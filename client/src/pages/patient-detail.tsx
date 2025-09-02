@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Calendar, User, Stethoscope, Pill, ClipboardList, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Calendar, User, Stethoscope, Pill, ClipboardList, FileText, Edit2, Check, X } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,9 +17,6 @@ interface DailyProgress {
   patientId: string;
   date: string;
   notes: string;
-  vitals?: string;
-  medications?: string;
-  tasks?: string;
   createdAt: string;
 }
 
@@ -30,9 +27,8 @@ export default function PatientDetail() {
   const queryClient = useQueryClient();
   
   const [newProgressNote, setNewProgressNote] = useState("");
-  const [newVitals, setNewVitals] = useState("");
-  const [newMedications, setNewMedications] = useState("");
-  const [newTasks, setNewTasks] = useState("");
+  const [editingProgress, setEditingProgress] = useState<string | null>(null);
+  const [editedNote, setEditedNote] = useState("");
 
   const { data: patient, isLoading: patientLoading } = useQuery<Patient>({
     queryKey: ["/api/patients", params?.id],
@@ -52,9 +48,6 @@ export default function PatientDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "progress"] });
       setNewProgressNote("");
-      setNewVitals("");
-      setNewMedications("");
-      setNewTasks("");
       toast({
         title: "Progress added",
         description: "Daily progress has been recorded successfully.",
@@ -64,6 +57,29 @@ export default function PatientDetail() {
       toast({
         title: "Error",
         description: error.message || "Failed to add progress entry",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const editProgressMutation = useMutation({
+    mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
+      const response = await apiRequest("PATCH", `/api/patients/${params?.id}/progress/${id}`, { notes });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "progress"] });
+      setEditingProgress(null);
+      setEditedNote("");
+      toast({
+        title: "Progress updated",
+        description: "Progress note has been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update progress note",
         variant: "destructive",
       });
     },
@@ -83,10 +99,33 @@ export default function PatientDetail() {
       patientId: params!.id,
       date: new Date().toISOString().split('T')[0],
       notes: newProgressNote,
-      vitals: newVitals || undefined,
-      medications: newMedications || undefined,
-      tasks: newTasks || undefined,
     });
+  };
+
+  const handleEditProgress = (entry: DailyProgress) => {
+    setEditingProgress(entry.id);
+    setEditedNote(entry.notes);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editedNote.trim()) {
+      toast({
+        title: "Error",
+        description: "Progress notes cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    editProgressMutation.mutate({
+      id: editingProgress!,
+      notes: editedNote,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProgress(null);
+    setEditedNote("");
   };
 
   const calculateDaysSinceAdmission = (doa: string) => {
@@ -232,45 +271,6 @@ export default function PatientDetail() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="vitals" className="block text-sm font-medium mb-2">
-                  Vitals
-                </Label>
-                <Input
-                  id="vitals"
-                  value={newVitals}
-                  onChange={(e) => setNewVitals(e.target.value)}
-                  placeholder="BP, HR, Temp, etc."
-                  data-testid="input-vitals"
-                />
-              </div>
-              <div>
-                <Label htmlFor="medications-update" className="block text-sm font-medium mb-2">
-                  Medication Changes
-                </Label>
-                <Input
-                  id="medications-update"
-                  value={newMedications}
-                  onChange={(e) => setNewMedications(e.target.value)}
-                  placeholder="New medications, dosage changes"
-                  data-testid="input-medications"
-                />
-              </div>
-              <div>
-                <Label htmlFor="tasks-update" className="block text-sm font-medium mb-2">
-                  Tasks/Orders
-                </Label>
-                <Input
-                  id="tasks-update"
-                  value={newTasks}
-                  onChange={(e) => setNewTasks(e.target.value)}
-                  placeholder="New tasks, lab orders"
-                  data-testid="input-tasks"
-                />
-              </div>
-            </div>
-
             <Button
               onClick={handleAddProgress}
               disabled={addProgressMutation.isPending || !newProgressNote.trim()}
@@ -327,33 +327,53 @@ export default function PatientDetail() {
                       </div>
                       
                       <div className="space-y-2">
-                        <div>
-                          <Label className="text-xs font-medium text-muted-foreground">Progress Notes</Label>
-                          <p className="text-sm">{entry.notes}</p>
-                        </div>
-                        
-                        {(entry.vitals || entry.medications || entry.tasks) && (
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-border">
-                            {entry.vitals && (
-                              <div>
-                                <Label className="text-xs font-medium text-muted-foreground">Vitals</Label>
-                                <p className="text-xs">{entry.vitals}</p>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <Label className="text-xs font-medium text-muted-foreground">Progress Notes</Label>
+                            {editingProgress === entry.id ? (
+                              <div className="mt-1">
+                                <Textarea
+                                  value={editedNote}
+                                  onChange={(e) => setEditedNote(e.target.value)}
+                                  rows={3}
+                                  className="text-sm"
+                                  data-testid={`textarea-edit-${entry.id}`}
+                                />
+                                <div className="flex space-x-2 mt-2">
+                                  <Button
+                                    onClick={handleSaveEdit}
+                                    disabled={editProgressMutation.isPending}
+                                    size="sm"
+                                    data-testid={`button-save-edit-${entry.id}`}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    onClick={handleCancelEdit}
+                                    variant="ghost"
+                                    size="sm"
+                                    data-testid={`button-cancel-edit-${entry.id}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
                               </div>
-                            )}
-                            {entry.medications && (
-                              <div>
-                                <Label className="text-xs font-medium text-muted-foreground">Medications</Label>
-                                <p className="text-xs">{entry.medications}</p>
-                              </div>
-                            )}
-                            {entry.tasks && (
-                              <div>
-                                <Label className="text-xs font-medium text-muted-foreground">Tasks</Label>
-                                <p className="text-xs">{entry.tasks}</p>
-                              </div>
+                            ) : (
+                              <p className="text-sm mt-1">{entry.notes}</p>
                             )}
                           </div>
-                        )}
+                          {editingProgress !== entry.id && (
+                            <Button
+                              onClick={() => handleEditProgress(entry)}
+                              variant="ghost"
+                              size="sm"
+                              className="ml-2"
+                              data-testid={`button-edit-progress-${entry.id}`}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
