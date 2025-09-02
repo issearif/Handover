@@ -192,9 +192,14 @@ export default function PatientDetail() {
       return;
     }
 
+    // Create date in Maldives timezone
+    const maldivesDate = new Date().toLocaleDateString('en-CA', {
+      timeZone: 'Indian/Maldives'
+    });
+    
     addProgressMutation.mutate({
       patientId: params!.id,
-      date: new Date().toISOString().split('T')[0],
+      date: maldivesDate,
       notes: newProgressNote,
     });
   };
