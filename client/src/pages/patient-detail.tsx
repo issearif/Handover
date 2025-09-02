@@ -347,14 +347,14 @@ export default function PatientDetail() {
                       {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
                     </CardTitle>
                     <div className="text-sm text-muted-foreground space-y-1">
-                      {patient.medications && patient.medications.length > 0 && (
+                      {patient.medications && patient.medications.trim() && (
                         <div>
-                          <span className="font-medium">Medications:</span> {patient.medications.join(", ")}
+                          <span className="font-medium">Medications:</span> {patient.medications}
                         </div>
                       )}
-                      {patient.presentingComplaints && (
+                      {patient.notes && patient.notes.trim() && (
                         <div>
-                          <span className="font-medium">Presenting Complaints:</span> {patient.presentingComplaints}
+                          <span className="font-medium">Notes:</span> {patient.notes}
                         </div>
                       )}
                     </div>
