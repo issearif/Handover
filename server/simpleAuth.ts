@@ -2,9 +2,11 @@ import express, { Express, RequestHandler } from "express";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
+import { db } from "./db";
+import { authTokens } from "@shared/schema";
+import { eq } from "drizzle-orm";
 
-// Simple in-memory session store for development
-const activeSessions = new Map<string, string>(); // token -> userId
+// Database-backed session storage for production reliability
 
 const scryptAsync = promisify(scrypt);
 
@@ -43,7 +45,16 @@ export function setupAuth(app: Express) {
       }
 
       const token = generateToken();
-      activeSessions.set(token, user.id);
+      
+      // Store token in database with 7-day expiry
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+      
+      await db.insert(authTokens).values({
+        token,
+        userId: user.id,
+        expiresAt,
+      });
 
       res.json({ 
         user: { id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName },
@@ -56,12 +67,17 @@ export function setupAuth(app: Express) {
   });
 
   // Logout endpoint
-  app.post("/api/logout", (req, res) => {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (token) {
-      activeSessions.delete(token);
+  app.post("/api/logout", async (req, res) => {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
+      if (token) {
+        await db.delete(authTokens).where(eq(authTokens.token, token));
+      }
+      res.json({ message: "Logged out successfully" });
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "Logout failed" });
     }
-    res.json({ message: "Logged out successfully" });
   });
 
   // Get current user endpoint
@@ -72,10 +88,17 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: "No token provided" });
       }
 
-      const userId = activeSessions.get(token);
-      if (!userId) {
-        return res.status(401).json({ message: "Invalid token" });
+      // Check token in database
+      const [authToken] = await db.select().from(authTokens).where(eq(authTokens.token, token));
+      if (!authToken || new Date() > authToken.expiresAt) {
+        if (authToken) {
+          // Clean up expired token
+          await db.delete(authTokens).where(eq(authTokens.token, token));
+        }
+        return res.status(401).json({ message: "Invalid or expired token" });
       }
+      
+      const userId = authToken.userId;
 
       const user = await storage.getUser(userId);
       if (!user) {
@@ -103,12 +126,17 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    const userId = activeSessions.get(token);
-    if (!userId) {
-      return res.status(401).json({ message: "Invalid token" });
+    // Check token in database
+    const [authToken] = await db.select().from(authTokens).where(eq(authTokens.token, token));
+    if (!authToken || new Date() > authToken.expiresAt) {
+      if (authToken) {
+        // Clean up expired token
+        await db.delete(authTokens).where(eq(authTokens.token, token));
+      }
+      return res.status(401).json({ message: "Invalid or expired token" });
     }
 
-    const user = await storage.getUser(userId);
+    const user = await storage.getUser(authToken.userId);
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
