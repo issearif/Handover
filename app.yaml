@@ -1,0 +1,26 @@
+# DigitalOcean App Platform configuration
+name: medical-handover-app
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: your-username/medical-handover-app
+    branch: main
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: NODE_ENV
+    value: production
+  - key: DATABASE_URL
+    value: ${db.DATABASE_URL}
+  - key: SESSION_SECRET
+    value: ${SESSION_SECRET}
+  http_port: 3000
+databases:
+- name: db
+  engine: PG
+  num_nodes: 1
+  size: db-s-dev-database
+  version: "15"
