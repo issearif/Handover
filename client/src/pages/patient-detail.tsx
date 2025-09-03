@@ -446,9 +446,9 @@ export default function PatientDetail() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Patient Information Card */}
-        <Card className="mb-6" data-testid="patient-info-card">
+        <Card className="mb-3" data-testid="patient-info-card">
           <CardHeader 
             className="cursor-pointer"
             onClick={() => setIsPatientDetailsExpanded(!isPatientDetailsExpanded)}
@@ -653,7 +653,7 @@ export default function PatientDetail() {
         </Card>
 
         {/* Daily Progress */}
-        <Card className="mb-6" data-testid="add-progress-card">
+        <Card className="mb-3" data-testid="add-progress-card">
           <CardHeader>
             <CardTitle>Daily Progress</CardTitle>
           </CardHeader>
@@ -679,10 +679,10 @@ export default function PatientDetail() {
           </CardContent>
         </Card>
 
-        {/* Handover to next Shift */}
-        <Card className="mb-6" data-testid="handover-card">
+        {/* Handovers */}
+        <Card className="mb-3" data-testid="handover-card">
           <CardHeader>
-            <CardTitle>Handover to next Shift</CardTitle>
+            <CardTitle>Handovers</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -704,114 +704,11 @@ export default function PatientDetail() {
               {addHandoverMutation.isPending ? "Adding..." : "Assign to Next Shift"}
             </Button>
 
-            {/* Handover History */}
-            {handoverLoading ? (
-              <div className="space-y-4 mt-6">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            ) : handoverData && Array.isArray(handoverData) && handoverData.length > 0 ? (
-              <div className="space-y-4 mt-6">
-                <h4 className="text-sm font-medium text-muted-foreground">Previous Handover Tasks</h4>
-                {handoverData?.map((handover: HandoverTasks) => (
-                  <div key={handover.id} className="border border-border rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="text-sm font-medium text-muted-foreground">
-                        {new Date(handover.date || new Date()).toLocaleDateString("en-US", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                          timeZone: "Indian/Maldives"
-                        })}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {handover.createdAt && new Date(handover.createdAt).toLocaleString("en-US", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                          second: "2-digit",
-                          timeZone: "Indian/Maldives",
-                          hour12: true
-                        })}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          {editingHandover === handover.id ? (
-                            <div>
-                              <Textarea
-                                value={editedHandoverTasks}
-                                onChange={(e) => setEditedHandoverTasks(e.target.value)}
-                                rows={3}
-                                className="text-sm"
-                                data-testid={`textarea-edit-handover-${handover.id}`}
-                              />
-                              <div className="flex space-x-2 mt-2">
-                                <Button
-                                  onClick={handleSaveHandoverEdit}
-                                  disabled={editHandoverMutation.isPending}
-                                  size="sm"
-                                  data-testid={`button-save-handover-edit-${handover.id}`}
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  onClick={handleCancelHandoverEdit}
-                                  variant="ghost"
-                                  size="sm"
-                                  data-testid={`button-cancel-handover-edit-${handover.id}`}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              <p className="text-sm">{handover.tasks}</p>
-                              <div className="text-xs text-muted-foreground">
-                                Assigned to: {handover.assignedShift} shift • Status: {handover.status}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                        {editingHandover !== handover.id && (
-                          <div className="flex space-x-1 ml-2">
-                            <Button
-                              onClick={() => handleEditHandover(handover)}
-                              variant="ghost"
-                              size="sm"
-                              data-testid={`button-edit-handover-${handover.id}`}
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              onClick={() => deleteHandoverMutation.mutate(handover.id)}
-                              variant="ghost"
-                              size="sm"
-                              disabled={deleteHandoverMutation.isPending}
-                              data-testid={`button-delete-handover-${handover.id}`}
-                            >
-                              <X className="h-4 w-4 text-red-500" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-4 mt-6">
-                <p className="text-sm text-muted-foreground">No handover tasks assigned yet.</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
         {/* Daily Progress History */}
-        <Card data-testid="progress-history-card">
+        <Card className="mb-3" data-testid="progress-history-card">
           <CardHeader>
             <CardTitle>Daily Progress History</CardTitle>
           </CardHeader>

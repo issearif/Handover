@@ -100,28 +100,26 @@ const DischargeSummary = () => {
               size="sm"
               data-testid="back-to-patient"
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Patient
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-            <h1 className="text-xl font-bold">Discharge Summary</h1>
+            <h1 className="text-xl font-bold">Patient Summary</h1>
             <Button onClick={handlePrint} variant="outline" size="sm" data-testid="print-button">
-              <Printer className="h-4 w-4 mr-2" />
-              Print
+              <Printer className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 print:px-0 print:py-4">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 print:px-0 print:py-4">
         <Card className="print:shadow-none print:border-none">
           <CardHeader className="print:pb-4">
             <CardTitle className="text-center text-2xl print:text-3xl">
-              DISCHARGE SUMMARY
+              PATIENT SUMMARY
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6 print:space-y-4">
+          <CardContent className="space-y-4 print:space-y-3">
             {/* Patient Details */}
-            <div className="space-y-2">
+            <div className="space-y-1">
               <h3 className="font-semibold text-lg border-b pb-1">Patient Details</h3>
               <div className="space-y-1 text-sm">
                 <p><strong>Name:</strong> {patient.name}</p>
@@ -154,7 +152,7 @@ const DischargeSummary = () => {
             {Object.keys(progressByDay).length > 0 && (
               <div className="space-y-2">
                 <h3 className="font-semibold text-lg border-b pb-1">Daily Progress</h3>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {Object.entries(progressByDay)
                     .sort(([a], [b]) => Number(a) - Number(b))
                     .map(([day, entries]) => (
