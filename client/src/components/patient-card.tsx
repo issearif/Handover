@@ -147,8 +147,18 @@ export default function PatientCard({ patient }: PatientCardProps) {
       case 'GW': return 'bg-pink-100 text-pink-800 border-pink-200 dark:bg-pink-900/30 dark:text-pink-300 dark:border-pink-700';
       case 'SW': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700';
       case 'ER': return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700';
+      case 'OPD': return 'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-700';
       default: return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/30 dark:text-gray-300 dark:border-gray-700';
     }
+  };
+
+  // Calculate days since admission
+  const calculateDaysSinceAdmission = (doa: string) => {
+    const admissionDate = new Date(doa);
+    const today = new Date();
+    const diffTime = Math.abs(today.getTime() - admissionDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
   };
 
   return (
@@ -293,7 +303,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
                       {patient.diagnosis}
                     </span>
                     <span className="text-xs text-muted-foreground ml-2" data-testid={`patient-doa-${patient.id}`}>
-                      (DOA: {patient.doa})
+                      (DOA: {calculateDaysSinceAdmission(patient.doa)})
                     </span>
                   </>
                 )}

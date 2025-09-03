@@ -12,7 +12,7 @@ export default function Dashboard() {
   });
 
   // Group patients by department with MW first priority
-  const departmentOrder = ["MW", "PVT", "GW", "SW", "ER", "Unknown"];
+  const departmentOrder = ["MW", "PVT", "GW", "SW", "ER", "OPD", "Unknown"];
   
   const groupedPatients = patients.reduce((groups, patient) => {
     const dept = patient.department || "Unknown";
@@ -39,6 +39,7 @@ export default function Dashboard() {
     "GW": "Gynecology Ward",
     "SW": "Surgical Ward",
     "ER": "Emergency Room",
+    "OPD": "Outpatient Department",
     "Unknown": "Unknown Department"
   };
 

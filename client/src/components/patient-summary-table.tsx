@@ -28,7 +28,7 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
   // Sort patients with MW first, then by department, then by bed number
   const sortedPatients = [...patients].sort((a, b) => {
     // Priority order: MW first, then others
-    const departmentOrder = ["MW", "PVT", "GW", "SW", "ER"];
+    const departmentOrder = ["MW", "PVT", "GW", "SW", "ER", "OPD"];
     const deptA = a.department || "Unknown";
     const deptB = b.department || "Unknown";
     
@@ -323,7 +323,7 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
         >
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
-              Patient Summary
+              Summary
               <span 
                 className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
                 data-testid="patient-count"

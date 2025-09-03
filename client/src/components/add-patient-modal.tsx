@@ -88,10 +88,10 @@ export default function AddPatientModal() {
       <DialogTrigger asChild>
         <Button 
           className="bg-primary text-primary-foreground hover:bg-primary/90"
+          size="sm"
           data-testid="button-add-patient"
         >
-          <Plus className="mr-2 h-4 w-4" />
-          Add New Patient
+          <Plus className="h-4 w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-screen overflow-y-auto" data-testid="add-patient-modal">
@@ -171,9 +171,8 @@ export default function AddPatientModal() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="M">Male</SelectItem>
-                        <SelectItem value="F">Female</SelectItem>
-                        <SelectItem value="O">Other</SelectItem>
+                        <SelectItem value="M">M</SelectItem>
+                        <SelectItem value="F">F</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -198,6 +197,7 @@ export default function AddPatientModal() {
                         <SelectItem value="GW">Gynecology Ward (GW)</SelectItem>
                         <SelectItem value="SW">Surgical Ward (SW)</SelectItem>
                         <SelectItem value="ER">Emergency Room (ER)</SelectItem>
+                        <SelectItem value="OPD">Outpatient Department (OPD)</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -261,45 +261,6 @@ export default function AddPatientModal() {
                 )}
               />
             </div>
-            
-            
-            <FormField
-              control={form.control}
-              name="medications"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Medications (Abx/Other)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      rows={3}
-                      placeholder="List current medications..." 
-                      {...field} 
-                      data-testid="textarea-medications"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="tasks"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tasks</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      rows={3}
-                      placeholder="Pending tasks and follow-ups..." 
-                      {...field} 
-                      data-testid="textarea-tasks"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             
             <div className="flex justify-end space-x-3 pt-4 border-t border-border">
               <Button 
