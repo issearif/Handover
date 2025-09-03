@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown } from "lucide-react";
-import { Patient, DailyProgress } from "@shared/schema";
+import { Patient, DailyProgress, HandoverTasks } from "@shared/schema";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +34,9 @@ export default function PatientDetail() {
   const [isEditingPatient, setIsEditingPatient] = useState(false);
   const [editedPatient, setEditedPatient] = useState<Partial<Patient>>({});
   const [isPatientDetailsExpanded, setIsPatientDetailsExpanded] = useState(false);
+  const [handoverTasks, setHandoverTasks] = useState("");
+  const [editingHandover, setEditingHandover] = useState<string | null>(null);
+  const [editedHandoverTasks, setEditedHandoverTasks] = useState("");
 
   const {
     data: patient,
@@ -49,6 +52,14 @@ export default function PatientDetail() {
     isLoading: progressLoading,
   } = useQuery<DailyProgress[]>({
     queryKey: ["/api/patients", params?.id, "progress"],
+    enabled: !!params?.id,
+  });
+
+  const {
+    data: handoverData,
+    isLoading: handoverLoading,
+  } = useQuery<HandoverTasks[]>({
+    queryKey: ["/api/patients", params?.id, "handover"],
     enabled: !!params?.id,
   });
 
@@ -157,6 +168,69 @@ export default function PatientDetail() {
     },
   });
 
+  // Handover mutations
+  const addHandoverMutation = useMutation({
+    mutationFn: async (handoverData: { patientId: string; date: string; tasks: string; assignedShift: string }) => {
+      return await apiRequest(`/api/patients/${params?.id}/handover`, { method: "POST", body: handoverData });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
+      setHandoverTasks("");
+      toast({
+        title: "Handover tasks added",
+        description: "Tasks have been assigned to next shift successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add handover tasks",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const editHandoverMutation = useMutation({
+    mutationFn: async ({ id, tasks }: { id: string; tasks: string }) => {
+      return await apiRequest(`/api/patients/${params?.id}/handover/${id}`, { method: "PATCH", body: { tasks } });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
+      setEditingHandover(null);
+      toast({
+        title: "Handover tasks updated",
+        description: "Tasks have been updated successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update handover tasks",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteHandoverMutation = useMutation({
+    mutationFn: async (handoverId: string) => {
+      return await apiRequest(`/api/patients/${params?.id}/handover/${handoverId}`, { method: "DELETE" });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
+      toast({
+        title: "Handover tasks deleted",
+        description: "Tasks have been removed successfully.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete handover tasks",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleAddProgress = () => {
     if (!newProgressNote.trim()) {
       toast({
@@ -239,6 +313,65 @@ export default function PatientDetail() {
     const diffTime = Math.abs(today.getTime() - admissionDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
+  };
+
+  // Handover handlers
+  const handleAddHandover = () => {
+    if (!handoverTasks.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter handover tasks",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!params?.id) {
+      toast({
+        title: "Error",
+        description: "Patient ID is missing",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get Maldives date
+    const maldivesDate = new Date().toLocaleDateString("sv-SE", {
+      timeZone: "Indian/Maldives"
+    });
+
+    addHandoverMutation.mutate({
+      patientId: params.id,
+      date: maldivesDate,
+      tasks: handoverTasks,
+      assignedShift: "next"
+    });
+  };
+
+  const handleEditHandover = (handover: HandoverTasks) => {
+    setEditingHandover(handover.id);
+    setEditedHandoverTasks(handover.tasks);
+  };
+
+  const handleSaveHandoverEdit = () => {
+    if (!editedHandoverTasks.trim()) {
+      toast({
+        title: "Error",
+        description: "Handover tasks cannot be empty",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    editHandoverMutation.mutate({
+      id: editingHandover!,
+      tasks: editedHandoverTasks,
+    });
+  };
+
+  const handleCancelHandoverEdit = () => {
+    setEditingHandover(null);
+    setEditedHandoverTasks("");
   };
 
   if (patientLoading) {
@@ -543,6 +676,137 @@ export default function PatientDetail() {
             >
               {addProgressMutation.isPending ? "Adding..." : "Add Progress"}
             </Button>
+          </CardContent>
+        </Card>
+
+        {/* Handover to next Shift */}
+        <Card className="mb-6" data-testid="handover-card">
+          <CardHeader>
+            <CardTitle>Handover to next Shift</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Textarea
+                id="handover-tasks"
+                value={handoverTasks}
+                onChange={(e) => setHandoverTasks(e.target.value)}
+                placeholder="Enter tasks to assign to the next shift (medications, observations, procedures, etc.)"
+                rows={3}
+                data-testid="textarea-handover-tasks"
+              />
+            </div>
+
+            <Button
+              onClick={handleAddHandover}
+              disabled={addHandoverMutation.isPending}
+              data-testid="button-add-handover"
+            >
+              {addHandoverMutation.isPending ? "Adding..." : "Assign to Next Shift"}
+            </Button>
+
+            {/* Handover History */}
+            {handoverLoading ? (
+              <div className="space-y-4 mt-6">
+                <Skeleton className="h-16 w-full" />
+                <Skeleton className="h-16 w-full" />
+              </div>
+            ) : handoverData && Array.isArray(handoverData) && handoverData.length > 0 ? (
+              <div className="space-y-4 mt-6">
+                <h4 className="text-sm font-medium text-muted-foreground">Previous Handover Tasks</h4>
+                {handoverData?.map((handover: HandoverTasks) => (
+                  <div key={handover.id} className="border border-border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {new Date(handover.date || new Date()).toLocaleDateString("en-US", {
+                          weekday: "long",
+                          year: "numeric",
+                          month: "long",
+                          day: "numeric",
+                          timeZone: "Indian/Maldives"
+                        })}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {handover.createdAt && new Date(handover.createdAt).toLocaleString("en-US", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                          timeZone: "Indian/Maldives",
+                          hour12: true
+                        })}
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          {editingHandover === handover.id ? (
+                            <div>
+                              <Textarea
+                                value={editedHandoverTasks}
+                                onChange={(e) => setEditedHandoverTasks(e.target.value)}
+                                rows={3}
+                                className="text-sm"
+                                data-testid={`textarea-edit-handover-${handover.id}`}
+                              />
+                              <div className="flex space-x-2 mt-2">
+                                <Button
+                                  onClick={handleSaveHandoverEdit}
+                                  disabled={editHandoverMutation.isPending}
+                                  size="sm"
+                                  data-testid={`button-save-handover-edit-${handover.id}`}
+                                >
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  onClick={handleCancelHandoverEdit}
+                                  variant="ghost"
+                                  size="sm"
+                                  data-testid={`button-cancel-handover-edit-${handover.id}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              <p className="text-sm">{handover.tasks}</p>
+                              <div className="text-xs text-muted-foreground">
+                                Assigned to: {handover.assignedShift} shift • Status: {handover.status}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        {editingHandover !== handover.id && (
+                          <div className="flex space-x-1 ml-2">
+                            <Button
+                              onClick={() => handleEditHandover(handover)}
+                              variant="ghost"
+                              size="sm"
+                              data-testid={`button-edit-handover-${handover.id}`}
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              onClick={() => deleteHandoverMutation.mutate(handover.id)}
+                              variant="ghost"
+                              size="sm"
+                              disabled={deleteHandoverMutation.isPending}
+                              data-testid={`button-delete-handover-${handover.id}`}
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4 mt-6">
+                <p className="text-sm text-muted-foreground">No handover tasks assigned yet.</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
