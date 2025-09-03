@@ -1,4 +1,4 @@
-import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type DailyProgress, type InsertDailyProgress, users, patients, dailyProgress } from "@shared/schema";
+import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type UpsertUser, type DailyProgress, type InsertDailyProgress, users, patients, dailyProgress } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -17,7 +17,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  upsertUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   // Daily progress operations
   getDailyProgress(patientId: string): Promise<DailyProgress[]>;
   createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
@@ -136,15 +136,14 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+    // OAuth doesn't use username lookup - return undefined
+    return undefined;
   }
 
   async createUser(userData: InsertUser): Promise<User> {
     const now = new Date();
     const user: User = {
-      id: randomUUID(),
-      username: userData.username,
-      password: userData.password,
+      id: userData.id || randomUUID(),
       email: userData.email || null,
       firstName: userData.firstName || null,
       lastName: userData.lastName || null,
@@ -156,7 +155,7 @@ export class MemStorage implements IStorage {
     return user;
   }
 
-  async upsertUser(userData: InsertUser): Promise<User> {
+  async upsertUser(userData: UpsertUser): Promise<User> {
     const existingUser = Array.from(this.users.values()).find(user => 
       user.email === userData.email
     );
@@ -286,8 +285,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    // OAuth doesn't use username lookup - return undefined
+    return undefined;
   }
 
   async createUser(userData: InsertUser): Promise<User> {
@@ -298,19 +297,19 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async upsertUser(userData: InsertUser): Promise<User> {
-    const existingUser = await this.getUserByUsername(userData.username);
-    
-    if (existingUser) {
-      const [user] = await db
-        .update(users)
-        .set({ ...userData, updatedAt: new Date() })
-        .where(eq(users.id, existingUser.id))
-        .returning();
-      return user;
-    } else {
-      return this.createUser(userData);
-    }
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
   }
 
   async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
