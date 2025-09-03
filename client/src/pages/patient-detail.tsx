@@ -54,7 +54,7 @@ export default function PatientDetail() {
 
   const addProgressMutation = useMutation({
     mutationFn: async (progressData: { patientId: string; date: string; notes: string }) => {
-      const response = await apiRequest("POST", `/api/patients/${params?.id}/progress`, progressData);
+      const response = await apiRequest(`/api/patients/${params?.id}/progress`, { method: "POST", body: progressData });
       return response.json();
     },
     onSuccess: () => {
@@ -76,7 +76,7 @@ export default function PatientDetail() {
 
   const editProgressMutation = useMutation({
     mutationFn: async ({ id, notes }: { id: string; notes: string }) => {
-      const response = await apiRequest("PATCH", `/api/patients/${params?.id}/progress/${id}`, { notes });
+      const response = await apiRequest(`/api/patients/${params?.id}/progress/${id}`, { method: "PATCH", body: { notes } });
       return response.json();
     },
     onSuccess: () => {
@@ -99,7 +99,7 @@ export default function PatientDetail() {
 
   const updatePatientMutation = useMutation({
     mutationFn: async (patientData: Partial<Patient> & { id: string }) => {
-      const response = await apiRequest("PATCH", `/api/patients/${patientData.id}`, patientData);
+      const response = await apiRequest(`/api/patients/${patientData.id}`, { method: "PATCH", body: patientData });
       return response.json();
     },
     onSuccess: () => {
@@ -122,7 +122,7 @@ export default function PatientDetail() {
 
   const deleteProgressMutation = useMutation({
     mutationFn: async (progressId: string) => {
-      const response = await apiRequest("DELETE", `/api/patients/${params?.id}/progress/${progressId}`);
+      const response = await apiRequest(`/api/patients/${params?.id}/progress/${progressId}`, { method: "DELETE" });
       return response.json();
     },
     onSuccess: () => {
@@ -143,7 +143,7 @@ export default function PatientDetail() {
 
   const deletePatientMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("DELETE", `/api/patients/${params?.id}`);
+      const response = await apiRequest(`/api/patients/${params?.id}`, { method: "DELETE" });
       return response.json();
     },
     onSuccess: () => {
@@ -578,7 +578,7 @@ export default function PatientDetail() {
                         })}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {new Date(entry.createdAt).toLocaleString("en-US", {
+                        {entry.createdAt && new Date(entry.createdAt).toLocaleString("en-US", {
                           hour: "2-digit",
                           minute: "2-digit",
                           second: "2-digit",
