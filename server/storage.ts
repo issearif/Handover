@@ -17,6 +17,7 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: InsertUser): Promise<User>;
   // Daily progress operations
   getDailyProgress(patientId: string): Promise<DailyProgress[]>;
   createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
@@ -59,6 +60,9 @@ export class MemStorage implements IStorage {
       deletedAt: null,
       createdAt: now,
       updatedAt: now,
+      medications: insertPatient.medications || null,
+      historyOfPresentIllness: insertPatient.historyOfPresentIllness || null,
+      notes: insertPatient.notes || null,
     };
     this.patients.set(id, patient);
     return patient;
@@ -143,11 +147,35 @@ export class MemStorage implements IStorage {
       email: userData.email || null,
       firstName: userData.firstName || null,
       lastName: userData.lastName || null,
+      profileImageUrl: userData.profileImageUrl || null,
       createdAt: now,
       updatedAt: now,
     };
     this.users.set(user.id, user);
     return user;
+  }
+
+  async upsertUser(userData: InsertUser): Promise<User> {
+    const existingUser = Array.from(this.users.values()).find(user => 
+      user.id === userData.id || user.email === userData.email
+    );
+    
+    if (existingUser) {
+      const now = new Date();
+      const updatedUser: User = {
+        ...existingUser,
+        ...userData,
+        updatedAt: now,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        profileImageUrl: userData.profileImageUrl || null,
+      };
+      this.users.set(existingUser.id, updatedUser);
+      return updatedUser;
+    } else {
+      return this.createUser(userData);
+    }
   }
 
   async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
@@ -267,6 +295,22 @@ export class DatabaseStorage implements IStorage {
       .values(userData)
       .returning();
     return user;
+  }
+
+  async upsertUser(userData: InsertUser): Promise<User> {
+    const existingUser = await this.getUserByUsername(userData.username) || 
+                        (userData.email ? await this.getUser(userData.id || '') : null);
+    
+    if (existingUser) {
+      const [user] = await db
+        .update(users)
+        .set({ ...userData, updatedAt: new Date() })
+        .where(eq(users.id, existingUser.id))
+        .returning();
+      return user;
+    } else {
+      return this.createUser(userData);
+    }
   }
 
   async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
