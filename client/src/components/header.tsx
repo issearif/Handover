@@ -1,4 +1,4 @@
-import { Clock, Hospital, Archive, LogOut } from "lucide-react";
+import { Clock, Archive, LogOut } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -33,24 +33,21 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 min-h-[64px]">
           {/* Left side - Title and Icon */}
           <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-            <Hospital className="text-primary text-xl sm:text-2xl" data-testid="hospital-icon" />
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-foreground leading-tight" data-testid="app-title">
-              <span className="hidden sm:inline">Internal Medicine Handover</span>
-              <span className="sm:hidden">Med Handover</span>
+              IM Handovers
             </h1>
           </div>
           
           {/* Right side - Navigation and User info */}
           <div className="flex items-center space-x-2 sm:space-x-4 flex-shrink-0">
-            {/* Navigation Links */}
+            {/* Archive Icon - Minimalistic */}
             {location === "/" ? (
               <Link 
                 href="/archive" 
-                className="text-muted-foreground hover:text-foreground transition-colors text-xs sm:text-sm font-medium flex items-center"
+                className="text-muted-foreground hover:text-foreground transition-colors p-2"
                 data-testid="link-archive"
               >
-                <Archive className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Archive</span>
+                <Archive className="h-4 w-4" />
               </Link>
             ) : (
               <Link 

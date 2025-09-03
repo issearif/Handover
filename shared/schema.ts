@@ -31,8 +31,8 @@ export const insertPatientSchema = createInsertSchema(patients).omit({
   updatedAt: true,
 }).extend({
   age: z.string().min(1, "Age is required"),
-  sex: z.enum(["M", "F", "O"], { required_error: "Sex is required" }),
-  department: z.enum(["MW", "PVT", "GW", "SW", "ER"], { required_error: "Department is required" }),
+  sex: z.enum(["M", "F"], { required_error: "Sex is required" }),
+  department: z.enum(["MW", "PVT", "GW", "SW", "ER", "OPD"], { required_error: "Department is required" }),
 });
 
 export const updatePatientSchema = createInsertSchema(patients).omit({
