@@ -63,6 +63,7 @@ export class MemStorage implements IStorage {
       medications: insertPatient.medications || null,
       historyOfPresentIllness: insertPatient.historyOfPresentIllness || null,
       notes: insertPatient.notes || null,
+      tasks: insertPatient.tasks || null,
     };
     this.patients.set(id, patient);
     return patient;
@@ -123,7 +124,7 @@ export class MemStorage implements IStorage {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    for (const [id, patient] of this.patients.entries()) {
+    for (const [id, patient] of Array.from(this.patients.entries())) {
       if (patient.isDeleted && patient.deletedAt && patient.deletedAt < sevenDaysAgo) {
         this.patients.delete(id);
       }
@@ -157,7 +158,7 @@ export class MemStorage implements IStorage {
 
   async upsertUser(userData: InsertUser): Promise<User> {
     const existingUser = Array.from(this.users.values()).find(user => 
-      user.id === userData.id || user.email === userData.email
+      user.email === userData.email
     );
     
     if (existingUser) {
@@ -298,8 +299,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: InsertUser): Promise<User> {
-    const existingUser = await this.getUserByUsername(userData.username) || 
-                        (userData.email ? await this.getUser(userData.id || '') : null);
+    const existingUser = await this.getUserByUsername(userData.username);
     
     if (existingUser) {
       const [user] = await db
