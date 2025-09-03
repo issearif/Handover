@@ -80,6 +80,17 @@ export type UpsertUser = typeof users.$inferInsert;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+// Auth tokens table for persistent session management
+export const authTokens = pgTable("auth_tokens", {
+  token: varchar("token").primaryKey(),
+  userId: varchar("user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export type AuthToken = typeof authTokens.$inferSelect;
+export type InsertAuthToken = typeof authTokens.$inferInsert;
+
 // Daily progress table for patient tracking
 export const dailyProgress = pgTable("daily_progress", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

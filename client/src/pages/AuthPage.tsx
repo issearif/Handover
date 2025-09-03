@@ -62,17 +62,20 @@ export default function AuthPage() {
 
   const registerMutation = useMutation({
     mutationFn: async (credentials: RegisterData) => {
-      const res = await apiRequest("POST", "/api/register", credentials);
-      return await res.json();
+      return await apiRequest("/api/register", {
+        method: "POST",
+        body: credentials,
+      });
     },
     onSuccess: (data) => {
       // Store token in localStorage
-      localStorage.setItem("auth_token", data.token);
-      queryClient.setQueryData(["/api/user"], data.user);
+      localStorage.setItem("authToken", data.token);
+      queryClient.setQueryData(["/api/auth/user"], data.user);
       toast({
         title: "Registration successful",
         description: `Welcome, ${data.user.firstName || data.user.username}!`,
       });
+      window.location.reload();
     },
     onError: (error: Error) => {
       toast({
