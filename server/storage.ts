@@ -136,8 +136,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    // OAuth doesn't use username lookup - return undefined
-    return undefined;
+    return Array.from(this.users.values()).find(user => user.username === username);
   }
 
   async createUser(userData: InsertUser): Promise<User> {
@@ -285,8 +284,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    // OAuth doesn't use username lookup - return undefined
-    return undefined;
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(userData: InsertUser): Promise<User> {
