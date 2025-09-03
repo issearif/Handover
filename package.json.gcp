@@ -1,0 +1,15 @@
+{
+  "name": "medical-handover-app",
+  "version": "1.0.0",
+  "description": "Medical handover application for internal medicine departments",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "NODE_ENV=production PORT=8080 node dist/index.js",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && cp -r dist/public/* server/public/",
+    "gcp:deploy": "gcloud app deploy",
+    "gcp:logs": "gcloud app logs tail -s default"
+  },
+  "engines": {
+    "node": "20.x.x"
+  }
+}
