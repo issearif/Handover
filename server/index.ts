@@ -44,8 +44,12 @@ app.use((req, res, next) => {
   // Create admin user on startup
   try {
     await createAdminUser();
-  } catch (error) {
-    console.error("Failed to create admin user:", error);
+  } catch (error: any) {
+    if (error.code === '23505') {
+      console.log("Admin user already exists, skipping creation");
+    } else {
+      console.error("Failed to create admin user:", error);
+    }
   }
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
