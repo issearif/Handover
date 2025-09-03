@@ -50,8 +50,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (updates: UpdatePatient) => {
-      const response = await apiRequest("PATCH", `/api/patients/${patient.id}`, updates);
-      return response.json();
+      return await apiRequest(`/api/patients/${patient.id}`, { method: "PATCH", body: updates });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
@@ -71,7 +70,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", `/api/patients/${patient.id}`);
+      return await apiRequest(`/api/patients/${patient.id}`, { method: "DELETE" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
