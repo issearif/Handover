@@ -56,8 +56,7 @@ export default function AddPatientModal() {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertPatient) => {
-      const response = await apiRequest("POST", "/api/patients", data);
-      return response.json();
+      return await apiRequest("/api/patients", { method: "POST", body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
