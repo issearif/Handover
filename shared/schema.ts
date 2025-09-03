@@ -120,3 +120,35 @@ export const insertDailyProgressSchema = createInsertSchema(dailyProgress).omit(
 
 export type InsertDailyProgress = z.infer<typeof insertDailyProgressSchema>;
 export type DailyProgress = typeof dailyProgress.$inferSelect;
+
+// Handover tasks table - for assigning tasks to next shift
+export const handoverTasks = pgTable("handover_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  patientId: varchar("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  date: text("date").notNull(), // YYYY-MM-DD format - date for which handover is being done
+  tasks: text("tasks").notNull(), // Tasks to be completed by next shift
+  status: text("status").default("pending"), // pending, completed
+  assignedShift: text("assigned_shift").default("next"), // next, morning, evening, night
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("IDX_handover_tasks_patient_id").on(table.patientId),
+  index("IDX_handover_tasks_date").on(table.date),
+]);
+
+export const insertHandoverTasksSchema = createInsertSchema(handoverTasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const updateHandoverTasksSchema = createInsertSchema(handoverTasks).omit({
+  id: true,
+  patientId: true,
+  date: true,
+  createdAt: true,
+  updatedAt: true,
+}).partial();
+
+export type InsertHandoverTasks = z.infer<typeof insertHandoverTasksSchema>;
+export type HandoverTasks = typeof handoverTasks.$inferSelect;

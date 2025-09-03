@@ -195,6 +195,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Handover tasks routes
+  // Get handover tasks for a patient
+  app.get("/api/patients/:id/handover", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { date } = req.query;
+      const handoverTasks = await storage.getHandoverTasks(id, date as string);
+      res.json(handoverTasks);
+    } catch (error) {
+      console.error("Error fetching handover tasks:", error);
+      res.status(500).json({ error: "Failed to fetch handover tasks" });
+    }
+  });
+
+  // Create handover tasks
+  app.post("/api/patients/:id/handover", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const handoverData = { ...req.body, patientId: id };
+      const handover = await storage.createHandoverTasks(handoverData);
+      res.status(201).json(handover);
+    } catch (error) {
+      console.error("Error creating handover tasks:", error);
+      res.status(500).json({ error: "Failed to create handover tasks" });
+    }
+  });
+
+  // Update handover tasks
+  app.patch("/api/patients/:id/handover/:handoverId", isAuthenticated, async (req, res) => {
+    try {
+      const { handoverId } = req.params;
+      const handover = await storage.updateHandoverTasks(handoverId, req.body);
+      if (handover) {
+        res.json(handover);
+      } else {
+        res.status(404).json({ error: "Handover tasks not found" });
+      }
+    } catch (error) {
+      console.error("Error updating handover tasks:", error);
+      res.status(500).json({ error: "Failed to update handover tasks" });
+    }
+  });
+
+  // Delete handover tasks
+  app.delete("/api/patients/:id/handover/:handoverId", isAuthenticated, async (req, res) => {
+    try {
+      const { handoverId } = req.params;
+      const success = await storage.deleteHandoverTasks(handoverId);
+      if (success) {
+        res.json({ message: "Handover tasks deleted" });
+      } else {
+        res.status(404).json({ error: "Handover tasks not found" });
+      }
+    } catch (error) {
+      console.error("Error deleting handover tasks:", error);
+      res.status(500).json({ error: "Failed to delete handover tasks" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

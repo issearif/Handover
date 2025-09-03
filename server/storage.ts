@@ -1,4 +1,4 @@
-import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type UpsertUser, type DailyProgress, type InsertDailyProgress, users, patients, dailyProgress } from "@shared/schema";
+import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type UpsertUser, type DailyProgress, type InsertDailyProgress, type HandoverTasks, type InsertHandoverTasks, users, patients, dailyProgress, handoverTasks } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -23,17 +23,24 @@ export interface IStorage {
   createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
   updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined>;
   deleteDailyProgress(id: string): Promise<boolean>;
+  // Handover tasks operations
+  getHandoverTasks(patientId: string, date?: string): Promise<HandoverTasks[]>;
+  createHandoverTasks(handover: InsertHandoverTasks): Promise<HandoverTasks>;
+  updateHandoverTasks(id: string, updates: { tasks?: string; status?: string }): Promise<HandoverTasks | undefined>;
+  deleteHandoverTasks(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
   private patients: Map<string, Patient>;
   private users: Map<string, User>;
   private dailyProgressEntries: Map<string, DailyProgress>;
+  private handoverTasksEntries: Map<string, HandoverTasks>;
 
   constructor() {
     this.patients = new Map();
     this.users = new Map();
     this.dailyProgressEntries = new Map();
+    this.handoverTasksEntries = new Map();
     // Start cleanup interval for expired patients (run every hour)
     setInterval(() => this.cleanupExpiredPatients(), 60 * 60 * 1000);
   }
@@ -213,6 +220,46 @@ export class MemStorage implements IStorage {
   async deleteDailyProgress(id: string): Promise<boolean> {
     return this.dailyProgressEntries.delete(id);
   }
+
+  // Handover tasks operations
+  async getHandoverTasks(patientId: string, date?: string): Promise<HandoverTasks[]> {
+    const allHandovers = Array.from(this.handoverTasksEntries.values());
+    let filtered = allHandovers.filter(h => h.patientId === patientId);
+    if (date) {
+      filtered = filtered.filter(h => h.date === date);
+    }
+    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createHandoverTasks(insertHandover: InsertHandoverTasks): Promise<HandoverTasks> {
+    const id = randomUUID();
+    const now = new Date();
+    const handover: HandoverTasks = {
+      ...insertHandover,
+      id,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.handoverTasksEntries.set(id, handover);
+    return handover;
+  }
+
+  async updateHandoverTasks(id: string, updates: { tasks?: string; status?: string }): Promise<HandoverTasks | undefined> {
+    const handover = this.handoverTasksEntries.get(id);
+    if (!handover) return undefined;
+    
+    const updatedHandover = {
+      ...handover,
+      ...updates,
+      updatedAt: new Date(),
+    };
+    this.handoverTasksEntries.set(id, updatedHandover);
+    return updatedHandover;
+  }
+
+  async deleteHandoverTasks(id: string): Promise<boolean> {
+    return this.handoverTasksEntries.delete(id);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -343,6 +390,36 @@ export class DatabaseStorage implements IStorage {
       .where(eq(dailyProgress.id, id))
       .returning();
     return result.length > 0;
+  }
+
+  // Handover tasks operations
+  async getHandoverTasks(patientId: string, date?: string): Promise<HandoverTasks[]> {
+    let query = db.select().from(handoverTasks).where(eq(handoverTasks.patientId, patientId));
+    const result = await query;
+    
+    let filtered = result;
+    if (date) {
+      filtered = result.filter(h => h.date === date);
+    }
+    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  async createHandoverTasks(insertHandover: InsertHandoverTasks): Promise<HandoverTasks> {
+    const [result] = await db.insert(handoverTasks).values(insertHandover).returning();
+    return result;
+  }
+
+  async updateHandoverTasks(id: string, updates: { tasks?: string; status?: string }): Promise<HandoverTasks | undefined> {
+    const [result] = await db.update(handoverTasks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(handoverTasks.id, id))
+      .returning();
+    return result || undefined;
+  }
+
+  async deleteHandoverTasks(id: string): Promise<boolean> {
+    const result = await db.delete(handoverTasks).where(eq(handoverTasks.id, id));
+    return (result as any).rowCount > 0;
   }
 }
 
