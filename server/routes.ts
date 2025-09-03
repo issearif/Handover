@@ -161,7 +161,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/patients/:patientId/progress/:id", isAuthenticated, async (req, res) => {
     try {
       const validatedData = updateDailyProgressSchema.parse(req.body);
-      const progress = await storage.updateDailyProgress(req.params.id, validatedData);
+      if (!validatedData.notes) {
+        return res.status(400).json({ message: "Notes field is required" });
+      }
+      const progress = await storage.updateDailyProgress(req.params.id, { notes: validatedData.notes });
       if (!progress) {
         return res.status(404).json({ message: "Progress entry not found" });
       }
