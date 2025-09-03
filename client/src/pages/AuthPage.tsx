@@ -35,17 +35,21 @@ export default function AuthPage() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
+      return await apiRequest("/api/login", {
+        method: "POST",
+        body: credentials,
+      });
     },
     onSuccess: (data) => {
       // Store token in localStorage
-      localStorage.setItem("auth_token", data.token);
-      queryClient.setQueryData(["/api/user"], data.user);
+      localStorage.setItem("authToken", data.token);
+      queryClient.setQueryData(["/api/auth/user"], data.user);
       toast({
         title: "Login successful",
         description: `Welcome, ${data.user.firstName || data.user.username}!`,
       });
+      // Reload to trigger auth state update
+      window.location.reload();
     },
     onError: (error: Error) => {
       toast({
@@ -123,7 +127,7 @@ export default function AuthPage() {
         <Tabs defaultValue="login" className="space-y-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsTrigger value="register">Help</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
@@ -174,79 +178,23 @@ export default function AuthPage() {
           <TabsContent value="register">
             <Card>
               <CardHeader>
-                <CardTitle>Register</CardTitle>
+                <CardTitle>Default Credentials</CardTitle>
                 <CardDescription>
-                  Create a new account to access the system
+                  Use these credentials to access the system
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <form onSubmit={handleRegister} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-username">Username</Label>
-                    <Input
-                      id="reg-username"
-                      type="text"
-                      placeholder="Choose a username"
-                      value={registerData.username}
-                      onChange={(e) => setRegisterData({ ...registerData, username: e.target.value })}
-                      data-testid="register-username"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-password">Password</Label>
-                    <Input
-                      id="reg-password"
-                      type="password"
-                      placeholder="Choose a password"
-                      value={registerData.password}
-                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                      data-testid="register-password"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reg-email">Email (optional)</Label>
-                    <Input
-                      id="reg-email"
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={registerData.email}
-                      onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      data-testid="register-email"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="reg-firstName">First Name (optional)</Label>
-                      <Input
-                        id="reg-firstName"
-                        type="text"
-                        placeholder="First name"
-                        value={registerData.firstName}
-                        onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
-                        data-testid="register-firstName"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="reg-lastName">Last Name (optional)</Label>
-                      <Input
-                        id="reg-lastName"
-                        type="text"
-                        placeholder="Last name"
-                        value={registerData.lastName}
-                        onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
-                        data-testid="register-lastName"
-                      />
-                    </div>
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full" 
-                    disabled={registerMutation.isPending}
-                    data-testid="register-submit"
-                  >
-                    {registerMutation.isPending ? "Creating account..." : "Create Account"}
-                  </Button>
-                </form>
+                <div className="space-y-2 text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <strong>Username:</strong> admin
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    <strong>Password:</strong> admin123
+                  </p>
+                </div>
+                <div className="text-xs text-center text-gray-500">
+                  Please change these credentials after first login
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
