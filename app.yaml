@@ -1,26 +1,31 @@
-# DigitalOcean App Platform configuration
-name: medical-handover-app
-services:
-- name: web
-  source_dir: /
-  github:
-    repo: your-username/medical-handover-app
-    branch: main
-  run_command: npm start
-  environment_slug: node-js
-  instance_count: 1
-  instance_size_slug: basic-xxs
-  envs:
-  - key: NODE_ENV
-    value: production
-  - key: DATABASE_URL
-    value: ${db.DATABASE_URL}
-  - key: SESSION_SECRET
-    value: ${SESSION_SECRET}
-  http_port: 3000
-databases:
-- name: db
-  engine: PG
-  num_nodes: 1
-  size: db-s-dev-database
-  version: "15"
+# Google App Engine configuration
+runtime: nodejs20
+
+# Automatic scaling configuration
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+  target_cpu_utilization: 0.6
+
+# Environment variables
+env_variables:
+  NODE_ENV: production
+  SESSION_SECRET: your-secret-key-here
+
+# Health check configuration
+health_check:
+  enable_health_check: true
+  check_interval_sec: 30
+  timeout_sec: 4
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+
+# Static file handling
+handlers:
+- url: /assets
+  static_dir: server/public/assets
+  secure: always
+
+- url: /.*
+  script: auto
+  secure: always

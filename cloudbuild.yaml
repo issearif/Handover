@@ -1,0 +1,18 @@
+# Google Cloud Build configuration
+steps:
+  # Install dependencies
+  - name: 'node:20'
+    entrypoint: 'npm'
+    args: ['ci']
+
+  # Build the application
+  - name: 'node:20'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+
+  # Deploy to App Engine
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args: ['app', 'deploy', 'app.yaml', '--quiet']
+
+# Build timeout
+timeout: 1200s
