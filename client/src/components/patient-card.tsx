@@ -34,6 +34,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
   // Editable fields state
   const [name, setName] = useState(patient.name || "");
   const [mrn, setMrn] = useState(patient.mrn || "");
+  const [nidPassport, setNidPassport] = useState(patient.nidPassport || "");
   const [age, setAge] = useState(patient.age || "");
   const [sex, setSex] = useState(patient.sex || "");
   const [department, setDepartment] = useState(patient.department || "");
@@ -92,6 +93,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
     updateMutation.mutate({
       name,
       mrn,
+      nidPassport,
       age,
       sex,
       department,
@@ -109,6 +111,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
     // Reset all fields to original values
     setName(patient.name || "");
     setMrn(patient.mrn || "");
+    setNidPassport(patient.nidPassport || "");
     setAge(patient.age || "");
     setSex(patient.sex || "");
     setDepartment(patient.department || "");
@@ -175,7 +178,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
       
       {/* Patient Information */}
       <div 
-        className="p-4 cursor-pointer" 
+        className="p-2 cursor-pointer" 
         onClick={toggleExpanded}
         data-testid={`card-header-${patient.id}`}
       >
@@ -198,27 +201,33 @@ export default function PatientCard({ patient }: PatientCardProps) {
               )}
             </div>
             
-            {/* ID Number - Always show as text in collapsed view */}
+            {/* ID Numbers - Compact display */}
             <div className="mb-2">
               {isEditing && isExpanded ? (
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">ID Number:</span>
+                <div className="space-y-1">
                   <Input
                     value={mrn}
                     onChange={(e) => setMrn(e.target.value)}
-                    className="text-sm flex-1"
-                    placeholder="ID Number"
+                    className="text-sm"
+                    placeholder="Hospital ID"
                     data-testid={`input-edit-mrn-${patient.id}`}
+                  />
+                  <Input
+                    value={nidPassport}
+                    onChange={(e) => setNidPassport(e.target.value)}
+                    className="text-sm"
+                    placeholder="NID/Passport"
+                    data-testid={`input-edit-nid-passport-${patient.id}`}
                   />
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground" data-testid={`patient-mrn-${patient.id}`}>
-                  ID Number: {patient.mrn}
-                </p>
+                <div className="text-xs text-muted-foreground" data-testid={`patient-ids-${patient.id}`}>
+                  Hospital ID: {patient.mrn} {patient.nidPassport && `• NID/Passport: ${patient.nidPassport}`}
+                </div>
               )}
             </div>
             
-            <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-2 gap-1 text-xs">
               {/* Age/Sex */}
               <div>
                 <span className="text-muted-foreground">Age/Sex:</span>
