@@ -122,15 +122,11 @@ export default function AuthPage() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Internal Medicine Handover
           </h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            Secure patient management system
-          </p>
         </div>
 
         <Tabs defaultValue="login" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="login">Sign In</TabsTrigger>
-            <TabsTrigger value="register">Help</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login">
@@ -178,34 +174,8 @@ export default function AuthPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="register">
-            <Card>
-              <CardHeader>
-                <CardTitle>Default Credentials</CardTitle>
-                <CardDescription>
-                  Use these credentials to access the system
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2 text-center">
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    <strong>Username:</strong> admin
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    <strong>Password:</strong> admin123
-                  </p>
-                </div>
-                <div className="text-xs text-center text-gray-500">
-                  Please change these credentials after first login
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
 
-        <div className="text-center text-xs text-gray-500 dark:text-gray-400">
-          This system is for authorized medical personnel only.
-        </div>
       </div>
     </div>
   );
