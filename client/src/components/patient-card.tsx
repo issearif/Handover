@@ -178,7 +178,7 @@ export default function PatientCard({ patient }: PatientCardProps) {
       
       {/* Patient Information */}
       <div 
-        className="p-2 cursor-pointer" 
+        className="p-4 cursor-pointer" 
         onClick={toggleExpanded}
         data-testid={`card-header-${patient.id}`}
       >
@@ -195,14 +195,14 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   data-testid={`input-edit-name-${patient.id}`}
                 />
               ) : (
-                <h3 className="font-semibold text-base text-foreground" data-testid={`patient-name-${patient.id}`}>
+                <h3 className="font-semibold text-lg text-foreground" data-testid={`patient-name-${patient.id}`}>
                   {patient.name}
                 </h3>
               )}
             </div>
             
             {/* ID Numbers - Compact display */}
-            <div className="mb-2">
+            <div className="mb-3">
               {isEditing && isExpanded ? (
                 <div className="space-y-1">
                   <Input
@@ -221,13 +221,13 @@ export default function PatientCard({ patient }: PatientCardProps) {
                   />
                 </div>
               ) : (
-                <div className="text-xs text-muted-foreground" data-testid={`patient-ids-${patient.id}`}>
+                <div className="text-sm text-muted-foreground" data-testid={`patient-ids-${patient.id}`}>
                   Hospital ID: {patient.mrn} {patient.nidPassport && `• NID/Passport: ${patient.nidPassport}`}
                 </div>
               )}
             </div>
             
-            <div className="grid grid-cols-2 gap-1 text-xs">
+            <div className="grid grid-cols-2 gap-3 text-sm">
               {/* Age/Sex */}
               <div>
                 <span className="text-muted-foreground">Age/Sex:</span>
