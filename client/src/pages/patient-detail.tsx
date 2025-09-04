@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -454,13 +455,8 @@ export default function PatientDetail() {
                 </p>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={cn(
-                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-                  patient.status === "active" && "bg-green-100 text-green-800",
-                  patient.status === "discharged" && "bg-gray-100 text-gray-800",
-                  patient.status === "transferred" && "bg-blue-100 text-blue-800"
-                )}>
-                  {patient.status}
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                  Active
                 </span>
                 {!isEditingPatient && (
                   <Button onClick={handleEditPatient} size="sm">
@@ -633,30 +629,6 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.historyOfPresentIllness || "No history of present illness recorded"}</p>
                 )}
               </div>
-                    </div>
-                    <div className="flex justify-end mt-4">
-                      {!isEditingPatient && (
-                        <Button onClick={handleEditPatient} size="sm">
-                          <Edit2 className="h-4 w-4 mr-2" />
-                          Edit Patient Info
-                        </Button>
-                      )}
-                      {isEditingPatient && (
-                        <div className="flex space-x-2">
-                          <Button onClick={handleSavePatient} disabled={updatePatientMutation.isPending} size="sm">
-                            <Check className="h-4 w-4 mr-2" />
-                            Save
-                          </Button>
-                          <Button onClick={handleCancelEditPatient} variant="ghost" size="sm">
-                            <X className="h-4 w-4 mr-2" />
-                            Cancel
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
             </div>
           </CardContent>
         </Card>
