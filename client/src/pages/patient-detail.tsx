@@ -443,10 +443,10 @@ export default function PatientDetail() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
         {/* Collapsible Patient Summary */}
-        <Card className="mb-3" data-testid="patient-summary">
-          <CardContent className="p-4">
+        <Card className="mb-2" data-testid="patient-summary">
+          <CardContent className="p-3">
             <div 
               className="flex justify-between items-center cursor-pointer"
               onClick={() => setIsPatientDetailsExpanded(!isPatientDetailsExpanded)}
@@ -651,25 +651,24 @@ export default function PatientDetail() {
         </Card>
 
         {/* Daily Progress */}
-        <Card className="mb-3" data-testid="add-progress-card">
-          <CardHeader>
-            <CardTitle>Daily Progress</CardTitle>
+        <Card className="mb-2" data-testid="add-progress-card">
+          <CardHeader className="pb-1 pt-2">
+            <CardTitle className="text-sm font-medium">Daily Progress</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Textarea
-                id="progress-notes"
-                value={newProgressNote}
-                onChange={(e) => setNewProgressNote(e.target.value)}
-                placeholder="Enter daily progress notes, observations, patient condition changes..."
-                rows={3}
-                data-testid="textarea-progress-notes"
-              />
-            </div>
-
+          <CardContent className="pt-1 space-y-2">
+            <Textarea
+              id="progress-notes"
+              value={newProgressNote}
+              onChange={(e) => setNewProgressNote(e.target.value)}
+              placeholder="Enter daily progress notes..."
+              rows={2}
+              className="text-xs"
+              data-testid="textarea-progress-notes"
+            />
             <Button
               onClick={handleAddProgress}
               disabled={addProgressMutation.isPending}
+              size="sm"
               data-testid="button-add-progress"
             >
               {addProgressMutation.isPending ? "Adding..." : "Add Progress"}
@@ -678,16 +677,17 @@ export default function PatientDetail() {
         </Card>
 
         {/* Handovers */}
-        <Card className="mb-3" data-testid="handover-card">
-          <CardHeader>
-            <CardTitle>Handovers</CardTitle>
+        <Card className="mb-2" data-testid="handover-card">
+          <CardHeader className="pb-1 pt-2">
+            <CardTitle className="text-sm font-medium">Handovers</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="pt-1 space-y-2">
             <Textarea
               value={handoverTasks}
               onChange={(e) => setHandoverTasks(e.target.value)}
               placeholder="Enter handover notes..."
-              rows={3}
+              rows={2}
+              className="text-xs"
               disabled={!isEditingHandover}
               data-testid="textarea-handover-tasks"
             />
@@ -730,9 +730,9 @@ export default function PatientDetail() {
         </Card>
 
         {/* Daily Progress History */}
-        <Card className="mb-3" data-testid="progress-history-card">
-          <CardHeader>
-            <CardTitle>Daily Progress History</CardTitle>
+        <Card className="mb-2" data-testid="progress-history-card">
+          <CardHeader className="pb-1 pt-2">
+            <CardTitle className="text-sm font-medium">Daily Progress History</CardTitle>
           </CardHeader>
           <CardContent>
             {progressLoading ? (
