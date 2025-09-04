@@ -2,9 +2,6 @@ import express, { Express, RequestHandler } from "express";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { db } from "./db";
-import { authTokens } from "@shared/schema";
-import { eq } from "drizzle-orm";
 
 // Database-backed session storage for production reliability
 
@@ -46,15 +43,11 @@ export function setupAuth(app: Express) {
 
       const token = generateToken();
       
-      // Store token in database with 7-day expiry
+      // Store token with 7-day expiry
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 7);
       
-      await db.insert(authTokens).values({
-        token,
-        userId: user.id,
-        expiresAt,
-      });
+      await storage.createAuthToken(token, user.id, expiresAt);
 
       res.json({ 
         user: { id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName },
@@ -71,7 +64,7 @@ export function setupAuth(app: Express) {
     try {
       const token = req.headers.authorization?.replace('Bearer ', '');
       if (token) {
-        await db.delete(authTokens).where(eq(authTokens.token, token));
+        await storage.deleteAuthToken(token);
       }
       res.json({ message: "Logged out successfully" });
     } catch (error) {
@@ -88,12 +81,12 @@ export function setupAuth(app: Express) {
         return res.status(401).json({ message: "No token provided" });
       }
 
-      // Check token in database
-      const [authToken] = await db.select().from(authTokens).where(eq(authTokens.token, token));
+      // Check token
+      const authToken = await storage.getAuthToken(token);
       if (!authToken || new Date() > authToken.expiresAt) {
         if (authToken) {
           // Clean up expired token
-          await db.delete(authTokens).where(eq(authTokens.token, token));
+          await storage.deleteAuthToken(token);
         }
         return res.status(401).json({ message: "Invalid or expired token" });
       }
@@ -126,12 +119,12 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    // Check token in database
-    const [authToken] = await db.select().from(authTokens).where(eq(authTokens.token, token));
+    // Check token
+    const authToken = await storage.getAuthToken(token);
     if (!authToken || new Date() > authToken.expiresAt) {
       if (authToken) {
         // Clean up expired token
-        await db.delete(authTokens).where(eq(authTokens.token, token));
+        await storage.deleteAuthToken(token);
       }
       return res.status(401).json({ message: "Invalid or expired token" });
     }

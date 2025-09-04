@@ -1,4 +1,4 @@
-import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type UpsertUser, type DailyProgress, type InsertDailyProgress, type HandoverTasks, type InsertHandoverTasks, users, patients, dailyProgress, handoverTasks } from "@shared/schema";
+import { type Patient, type InsertPatient, type UpdatePatient, type User, type InsertUser, type UpsertUser, type DailyProgress, type InsertDailyProgress, type HandoverTasks, type InsertHandoverTasks, users, patients, dailyProgress, handoverTasks, authTokens } from "@shared/schema";
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -28,6 +28,10 @@ export interface IStorage {
   createHandoverTasks(handover: InsertHandoverTasks): Promise<HandoverTasks>;
   updateHandoverTasks(id: string, updates: { tasks?: string; status?: string }): Promise<HandoverTasks | undefined>;
   deleteHandoverTasks(id: string): Promise<boolean>;
+  // Auth token operations
+  createAuthToken(token: string, userId: string, expiresAt: Date): Promise<void>;
+  getAuthToken(token: string): Promise<{userId: string, expiresAt: Date} | undefined>;
+  deleteAuthToken(token: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -35,12 +39,14 @@ export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private dailyProgressEntries: Map<string, DailyProgress>;
   private handoverTasksEntries: Map<string, HandoverTasks>;
+  private authTokens: Map<string, {userId: string, expiresAt: Date}>;
 
   constructor() {
     this.patients = new Map();
     this.users = new Map();
     this.dailyProgressEntries = new Map();
     this.handoverTasksEntries = new Map();
+    this.authTokens = new Map();
     // Start cleanup interval for expired patients (run every hour)
     setInterval(() => this.cleanupExpiredPatients(), 60 * 60 * 1000);
   }
@@ -260,6 +266,19 @@ export class MemStorage implements IStorage {
   async deleteHandoverTasks(id: string): Promise<boolean> {
     return this.handoverTasksEntries.delete(id);
   }
+
+  // Auth token operations
+  async createAuthToken(token: string, userId: string, expiresAt: Date): Promise<void> {
+    this.authTokens.set(token, { userId, expiresAt });
+  }
+
+  async getAuthToken(token: string): Promise<{userId: string, expiresAt: Date} | undefined> {
+    return this.authTokens.get(token);
+  }
+
+  async deleteAuthToken(token: string): Promise<boolean> {
+    return this.authTokens.delete(token);
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -419,6 +438,26 @@ export class DatabaseStorage implements IStorage {
 
   async deleteHandoverTasks(id: string): Promise<boolean> {
     const result = await db.delete(handoverTasks).where(eq(handoverTasks.id, id));
+    return (result as any).rowCount > 0;
+  }
+
+  // Auth token operations
+  async createAuthToken(token: string, userId: string, expiresAt: Date): Promise<void> {
+    await db.insert(authTokens).values({
+      token,
+      userId,
+      expiresAt,
+    });
+  }
+
+  async getAuthToken(token: string): Promise<{userId: string, expiresAt: Date} | undefined> {
+    const [authToken] = await db.select().from(authTokens).where(eq(authTokens.token, token));
+    if (!authToken) return undefined;
+    return { userId: authToken.userId, expiresAt: authToken.expiresAt };
+  }
+
+  async deleteAuthToken(token: string): Promise<boolean> {
+    const result = await db.delete(authTokens).where(eq(authTokens.token, token));
     return (result as any).rowCount > 0;
   }
 }
