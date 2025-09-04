@@ -43,7 +43,6 @@ export default function PatientDetail() {
   const [editedPatient, setEditedPatient] = useState<Partial<Patient>>({});
   const [isPatientDetailsExpanded, setIsPatientDetailsExpanded] = useState(false);
   const [handoverTasks, setHandoverTasks] = useState("");
-  const [isEditingHandover, setIsEditingHandover] = useState(false);
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
 
   const {
@@ -204,7 +203,6 @@ export default function PatientDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
-      setIsEditingHandover(false);
       toast({
         title: "Handover tasks updated",
         description: "Tasks have been updated successfully.",
@@ -357,17 +355,14 @@ export default function PatientDetail() {
   };
 
   const handleEditHandover = (handover: HandoverTasks) => {
-    setIsEditingHandover(true);
     setHandoverTasks(handover.tasks);
   };
 
   const handleSaveHandoverEdit = () => {
-    setIsEditingHandover(false);
     toast({ title: "Saved", description: "Handover notes saved successfully." });
   };
 
   const handleCancelHandoverEdit = () => {
-    setIsEditingHandover(false);
     setHandoverTasks("");
   };
 
@@ -443,7 +438,7 @@ export default function PatientDetail() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+      <div className="max-w-4xl mx-auto py-2">
         {/* Collapsible Patient Summary */}
         <Card className="mb-2" data-testid="patient-summary">
           <CardContent className="p-3">
@@ -458,7 +453,7 @@ export default function PatientDetail() {
                 </h3>
               </div>
               <div className="flex items-center space-x-2">
-                {!isPatientDetailsExpanded && !isEditingPatient && (
+                {!isEditingPatient && (
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -688,44 +683,30 @@ export default function PatientDetail() {
               placeholder="Enter handover notes..."
               rows={2}
               className="text-xs"
-              disabled={!isEditingHandover}
               data-testid="textarea-handover-tasks"
             />
             
-            {isEditingHandover ? (
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => {
-                    setIsEditingHandover(false);
-                    toast({ title: "Saved", description: "Handover notes saved successfully." });
-                  }}
-                  size="sm"
-                  data-testid="button-save-handover"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-                <Button
-                  onClick={() => {
-                    setHandoverTasks("");
-                    setIsEditingHandover(false);
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  data-testid="button-cancel-handover"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ) : (
+            <div className="flex space-x-2">
               <Button
-                onClick={() => setIsEditingHandover(true)}
+                onClick={() => {
+                  toast({ title: "Saved", description: "Handover notes saved successfully." });
+                }}
                 size="sm"
-                data-testid="button-edit-handover"
+                data-testid="button-save-handover"
               >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Edit
+                <Check className="h-4 w-4" />
               </Button>
-            )}
+              <Button
+                onClick={() => {
+                  setHandoverTasks("");
+                }}
+                variant="ghost"
+                size="sm"
+                data-testid="button-clear-handover"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
