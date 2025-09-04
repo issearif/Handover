@@ -24,14 +24,11 @@ export default function Overview() {
   // Load handover data for all patients
   useEffect(() => {
     if (patients.length > 0) {
-      patients.forEach(async (patient) => {
-        try {
-          const maldivesDate = new Date().toLocaleDateString("sv-SE", { timeZone: "Indian/Maldives" });
-          const response = await fetch(`/api/patients/${patient.id}/handover?date=${maldivesDate}`, {
-            credentials: 'include'
-          });
-          if (response.ok) {
-            const handoverData: HandoverTasks[] = await response.json();
+      const loadHandoverData = async () => {
+        for (const patient of patients) {
+          try {
+            const maldivesDate = new Date().toLocaleDateString("sv-SE", { timeZone: "Indian/Maldives" });
+            const handoverData: HandoverTasks[] = await apiRequest(`/api/patients/${patient.id}/handover?date=${maldivesDate}`);
             if (handoverData.length > 0) {
               const latestHandover = handoverData[handoverData.length - 1];
               setHandoverValues(prev => ({
@@ -39,11 +36,12 @@ export default function Overview() {
                 [patient.id]: latestHandover.tasks || ""
               }));
             }
+          } catch (error) {
+            console.error(`Error loading handover for patient ${patient.id}:`, error);
           }
-        } catch (error) {
-          console.error(`Error loading handover for patient ${patient.id}:`, error);
         }
-      });
+      };
+      loadHandoverData();
     }
   }, [patients]);
 

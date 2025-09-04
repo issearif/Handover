@@ -460,7 +460,16 @@ export default function PatientDetail() {
             >
               <div>
                 <h3 className="text-lg font-semibold text-foreground">
-                  {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
+                  {isEditingPatient ? (
+                    <Input
+                      value={editedPatient.name || patient.name}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, name: e.target.value })}
+                      className="text-lg font-semibold bg-transparent border-dashed border-muted-foreground"
+                      data-testid="input-edit-name"
+                    />
+                  ) : (
+                    `${patient.name} (${patient.age}${patient.sex}) - ${patient.diagnosis}`
+                  )}
                 </h3>
               </div>
               <div className="flex items-center space-x-2">
