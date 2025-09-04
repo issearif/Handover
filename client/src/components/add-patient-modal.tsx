@@ -42,6 +42,7 @@ export default function AddPatientModal() {
     defaultValues: {
       name: "",
       mrn: "",
+      nidPassport: "",
       age: "",
       sex: undefined,
       department: undefined,
@@ -126,12 +127,29 @@ export default function AddPatientModal() {
                 name="mrn"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>ID Number *</FormLabel>
+                    <FormLabel>Hospital ID *</FormLabel>
                     <FormControl>
                       <Input 
-                        placeholder="Patient ID number" 
+                        placeholder="Hospital ID number" 
                         {...field} 
                         data-testid="input-mrn"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="nidPassport"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>NID/Passport</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="National ID or Passport" 
+                        {...field} 
+                        data-testid="input-nid-passport"
                       />
                     </FormControl>
                     <FormMessage />

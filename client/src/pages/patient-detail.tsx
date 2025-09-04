@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown } from "lucide-react";
+import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown, FileText } from "lucide-react";
 import { Patient, DailyProgress, HandoverTasks } from "@shared/schema";
 import {
   AlertDialog,
@@ -22,6 +22,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 
 export default function PatientDetail() {
@@ -35,8 +42,8 @@ export default function PatientDetail() {
   const [editedPatient, setEditedPatient] = useState<Partial<Patient>>({});
   const [isPatientDetailsExpanded, setIsPatientDetailsExpanded] = useState(false);
   const [handoverTasks, setHandoverTasks] = useState("");
-  const [editingHandover, setEditingHandover] = useState<string | null>(null);
-  const [editedHandoverTasks, setEditedHandoverTasks] = useState("");
+  const [isEditingHandover, setIsEditingHandover] = useState(false);
+  const [showSummaryDialog, setShowSummaryDialog] = useState(false);
 
   const {
     data: patient,
@@ -447,87 +454,57 @@ export default function PatientDetail() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Patient Information Card */}
-        <Card className="mb-3" data-testid="patient-info-card">
-          <CardHeader 
-            className="cursor-pointer"
-            onClick={() => setIsPatientDetailsExpanded(!isPatientDetailsExpanded)}
-          >
+        {/* Patient Summary */}
+        <Card className="mb-2" data-testid="patient-summary-card">
+          <CardContent className="py-3">
             <div className="flex items-center justify-between">
               <div className="flex-1">
-                {isPatientDetailsExpanded ? (
-                  <CardTitle className="text-xl">
-                    {patient.name}
-                  </CardTitle>
-                ) : (
-                  <CardTitle className="text-base">
-                    {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
-                  </CardTitle>
-                )}
+                <h3 className="text-base font-semibold">
+                  {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
+                </h3>
               </div>
-              <div className="flex items-center space-x-2">
-                {isPatientDetailsExpanded && !isEditingPatient && (
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditPatient();
-                    }}
-                    variant="ghost"
-                    size="sm"
-                    data-testid="button-edit-patient"
-                  >
-                    <Edit2 className="h-4 w-4" />
+              <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" data-testid="button-view-summary">
+                    <FileText className="h-4 w-4 mr-2" />
+                    View Summary
                   </Button>
-                )}
-                {isPatientDetailsExpanded && isEditingPatient && (
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSavePatient();
-                      }}
-                      disabled={updatePatientMutation.isPending}
-                      size="sm"
-                      data-testid="button-save-patient"
-                    >
-                      <Check className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCancelEditPatient();
-                      }}
-                      variant="ghost"
-                      size="sm"
-                      data-testid="button-cancel-edit-patient"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-                <ChevronDown
-                  className={`h-4 w-4 transition-transform ${
-                    isPatientDetailsExpanded ? 'rotate-180' : ''
-                  }`}
-                  data-testid="expand-patient-details"
-                />
-              </div>
-            </div>
-          </CardHeader>
-          {isPatientDetailsExpanded && (
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                </DialogTrigger>
+                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Patient Summary - {patient.name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium text-muted-foreground">MRN</Label>
+                <Label className="text-sm font-medium text-muted-foreground">Hospital ID</Label>
                 {isEditingPatient ? (
-                  <Input
-                    value={editedPatient.mrn || patient.mrn}
-                    onChange={(e) => setEditedPatient({ ...editedPatient, mrn: e.target.value })}
-                    className="text-sm font-mono"
-                    data-testid="input-edit-mrn"
-                  />
+                  <div className="space-y-2">
+                    <Input
+                      value={editedPatient.mrn || patient.mrn}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, mrn: e.target.value })}
+                      className="text-sm font-mono"
+                      data-testid="input-edit-mrn"
+                      placeholder="Hospital ID"
+                    />
+                    <Input
+                      value={editedPatient.nidPassport || patient.nidPassport || ""}
+                      onChange={(e) => setEditedPatient({ ...editedPatient, nidPassport: e.target.value })}
+                      className="text-sm font-mono"
+                      data-testid="input-edit-nid-passport"
+                      placeholder="NID/Passport"
+                    />
+                  </div>
                 ) : (
-                  <p className="text-sm font-mono">{patient.mrn}</p>
+                  <div className="space-y-1">
+                    <p className="text-sm font-mono">{patient.mrn}</p>
+                    {patient.nidPassport && (
+                      <div>
+                        <span className="text-xs text-muted-foreground">NID/Passport: </span>
+                        <span className="text-sm font-mono">{patient.nidPassport}</span>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
               <div>
@@ -684,26 +661,50 @@ export default function PatientDetail() {
           <CardHeader>
             <CardTitle>Handovers</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Textarea
-                id="handover-tasks"
-                value={handoverTasks}
-                onChange={(e) => setHandoverTasks(e.target.value)}
-                placeholder="Enter tasks to assign to the next shift (medications, observations, procedures, etc.)"
-                rows={3}
-                data-testid="textarea-handover-tasks"
-              />
-            </div>
-
-            <Button
-              onClick={handleAddHandover}
-              disabled={addHandoverMutation.isPending}
-              data-testid="button-add-handover"
-            >
-              {addHandoverMutation.isPending ? "Adding..." : "Assign to Next Shift"}
-            </Button>
-
+          <CardContent className="space-y-3">
+            <Textarea
+              value={handoverTasks}
+              onChange={(e) => setHandoverTasks(e.target.value)}
+              placeholder="Enter handover notes..."
+              rows={3}
+              disabled={!isEditingHandover}
+              data-testid="textarea-handover-tasks"
+            />
+            
+            {isEditingHandover ? (
+              <div className="flex space-x-2">
+                <Button
+                  onClick={() => {
+                    setIsEditingHandover(false);
+                    toast({ title: "Saved", description: "Handover notes saved successfully." });
+                  }}
+                  size="sm"
+                  data-testid="button-save-handover"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setHandoverTasks("");
+                    setIsEditingHandover(false);
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  data-testid="button-cancel-handover"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => setIsEditingHandover(true)}
+                size="sm"
+                data-testid="button-edit-handover"
+              >
+                <Edit2 className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
           </CardContent>
         </Card>
 
