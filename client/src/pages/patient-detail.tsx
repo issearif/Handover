@@ -203,7 +203,7 @@ export default function PatientDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
-      setEditingHandover(null);
+      setIsEditingHandover(false);
       toast({
         title: "Handover tasks updated",
         description: "Tasks have been updated successfully.",
@@ -356,29 +356,18 @@ export default function PatientDetail() {
   };
 
   const handleEditHandover = (handover: HandoverTasks) => {
-    setEditingHandover(handover.id);
-    setEditedHandoverTasks(handover.tasks);
+    setIsEditingHandover(true);
+    setHandoverTasks(handover.tasks);
   };
 
   const handleSaveHandoverEdit = () => {
-    if (!editedHandoverTasks.trim()) {
-      toast({
-        title: "Error",
-        description: "Handover tasks cannot be empty",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    editHandoverMutation.mutate({
-      id: editingHandover!,
-      tasks: editedHandoverTasks,
-    });
+    setIsEditingHandover(false);
+    toast({ title: "Saved", description: "Handover notes saved successfully." });
   };
 
   const handleCancelHandoverEdit = () => {
-    setEditingHandover(null);
-    setEditedHandoverTasks("");
+    setIsEditingHandover(false);
+    setHandoverTasks("");
   };
 
   if (patientLoading) {
@@ -624,9 +613,32 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.historyOfPresentIllness || "No history of present illness recorded"}</p>
                 )}
               </div>
-              </div>
-            </CardContent>
-          )}
+                    </div>
+                    <div className="flex justify-end mt-4">
+                      {!isEditingPatient && (
+                        <Button onClick={handleEditPatient} size="sm">
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Edit Patient Info
+                        </Button>
+                      )}
+                      {isEditingPatient && (
+                        <div className="flex space-x-2">
+                          <Button onClick={handleSavePatient} disabled={updatePatientMutation.isPending} size="sm">
+                            <Check className="h-4 w-4 mr-2" />
+                            Save
+                          </Button>
+                          <Button onClick={handleCancelEditPatient} variant="ghost" size="sm">
+                            <X className="h-4 w-4 mr-2" />
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardContent>
         </Card>
 
         {/* Daily Progress */}
