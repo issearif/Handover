@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { Patient } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { Printer, ChevronDown } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 
 interface PatientSummaryTableProps {
   patients: Patient[];
@@ -24,7 +24,6 @@ const getStatusClassName = (status: string) => {
 };
 
 export default function PatientSummaryTable({ patients }: PatientSummaryTableProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   // Sort patients with MW first, then by department, then by bed number
   const sortedPatients = [...patients].sort((a, b) => {
     // Priority order: MW first, then others
@@ -317,117 +316,27 @@ export default function PatientSummaryTable({ patients }: PatientSummaryTablePro
   return (
     <div className="mb-6">
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-hidden" data-testid="summary-table">
-        <div 
-          className="px-4 py-2 border-b border-border bg-muted/50 cursor-pointer" 
-          onClick={() => setIsExpanded(!isExpanded)}
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
-              Summary
-              <span 
-                className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
-                data-testid="patient-count"
-              >
-                {patients.length}
-              </span>
-              <ChevronDown 
-                className={cn(
-                  "ml-2 text-muted-foreground transition-transform h-4 w-4",
-                  isExpanded && "rotate-180"
-                )}
-                data-testid="expand-summary-icon"
-              />
-            </h2>
-            {isExpanded && (
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePrint();
-                }}
-                variant="outline"
-                size="sm"
-                className="no-print"
-                data-testid="print-summary-button"
-              >
-                <Printer className="mr-2 h-4 w-4" />
-                Print Summary
-              </Button>
-            )}
+        <Link href="/overview">
+          <div 
+            className="px-4 py-2 border-b border-border bg-muted/50 cursor-pointer hover:bg-muted/70 transition-colors" 
+          >
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-semibold text-foreground flex items-center" data-testid="summary-title">
+                View overview
+                <span 
+                  className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-1 rounded-full" 
+                  data-testid="patient-count"
+                >
+                  {patients.length}
+                </span>
+                <ChevronRight 
+                  className="ml-2 text-muted-foreground h-4 w-4"
+                  data-testid="view-overview-icon"
+                />
+              </h2>
+            </div>
           </div>
-        </div>
-        <div className={cn(
-          "expandable-content overflow-x-auto",
-          isExpanded && "expanded"
-        )}>
-          <table className="w-full" id="patient-summary-print">
-            <thead className="bg-muted/30">
-              <tr>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider bed-col">
-                  Bed
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider patient-col">
-                  Patient
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider age-col">
-                  Age/Sex
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider diagnosis-col">
-                  Diagnosis/DOA
-                </th>
-                <th className="px-3 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider tasks-col">
-                  Tasks
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-card divide-y divide-border">
-              {patients.length === 0 ? (
-                <tr>
-                  <td 
-                    colSpan={5} 
-                    className="px-3 py-4 text-center text-muted-foreground text-sm"
-                    data-testid="empty-patients-message"
-                  >
-                    No patients currently registered
-                  </td>
-                </tr>
-              ) : (
-                sortedPatients.map((patient) => (
-                  <tr 
-                    key={patient.id} 
-                    className="hover:bg-muted/50 transition-colors"
-                    data-testid={`summary-row-${patient.id}`}
-                  >
-                    <td className="px-3 py-2 text-sm text-foreground font-medium bed-col" data-testid={`bed-${patient.id}`}>
-                      {patient.department}{patient.bed}
-                    </td>
-                    <td className="px-3 py-2 patient-col">
-                      <div className="font-medium text-sm text-foreground patient-name" data-testid={`name-${patient.id}`}>
-                        {patient.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground patient-id" data-testid={`mrn-${patient.id}`}>
-                        ID: {patient.mrn}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-sm text-foreground age-col" data-testid={`age-sex-${patient.id}`}>
-                      {patient.age}/{patient.sex}
-                    </td>
-                    <td className="px-3 py-2 diagnosis-col">
-                      <div className="text-sm text-foreground diagnosis-text" data-testid={`diagnosis-${patient.id}`}>
-                        {patient.diagnosis}
-                      </div>
-                      <div className="text-xs text-muted-foreground doa-text" data-testid={`doa-${patient.id}`}>
-                        {patient.doa}
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-xs text-foreground tasks-col" data-testid={`tasks-${patient.id}`}>
-                      {patient.tasks || "None"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        </Link>
       </div>
     </div>
   );
