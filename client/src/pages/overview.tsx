@@ -27,7 +27,9 @@ export default function Overview() {
       patients.forEach(async (patient) => {
         try {
           const maldivesDate = new Date().toLocaleDateString("sv-SE", { timeZone: "Indian/Maldives" });
-          const response = await fetch(`/api/patients/${patient.id}/handover?date=${maldivesDate}`);
+          const response = await fetch(`/api/patients/${patient.id}/handover?date=${maldivesDate}`, {
+            credentials: 'include'
+          });
           if (response.ok) {
             const handoverData: HandoverTasks[] = await response.json();
             if (handoverData.length > 0) {
