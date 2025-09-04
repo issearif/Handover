@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -124,12 +123,7 @@ export default function AuthPage() {
           </h1>
         </div>
 
-        <Tabs defaultValue="login" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="login">Sign In</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="login">
+        <div className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Sign In</CardTitle>
@@ -172,9 +166,7 @@ export default function AuthPage() {
                 </form>
               </CardContent>
             </Card>
-          </TabsContent>
-
-        </Tabs>
+        </div>
 
       </div>
     </div>

@@ -37,6 +37,14 @@ export function setupAuth(app: Express) {
       }
 
       const user = await storage.getUserByUsername(username);
+      console.log("Login attempt for username:", username);
+      console.log("User found:", !!user);
+      if (user) {
+        console.log("Stored password hash:", user.password);
+        const passwordMatch = await comparePasswords(password, user.password);
+        console.log("Password match:", passwordMatch);
+      }
+      
       if (!user || !(await comparePasswords(password, user.password))) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
