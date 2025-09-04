@@ -77,6 +77,7 @@ export class MemStorage implements IStorage {
       historyOfPresentIllness: insertPatient.historyOfPresentIllness || null,
       notes: insertPatient.notes || null,
       tasks: insertPatient.tasks || null,
+      nidPassport: insertPatient.nidPassport || null,
     };
     this.patients.set(id, patient);
     return patient;
