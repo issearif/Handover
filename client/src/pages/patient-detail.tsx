@@ -443,28 +443,48 @@ export default function PatientDetail() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Patient Summary */}
-        <Card className="mb-2" data-testid="patient-summary-card">
-          <CardContent className="py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h3 className="text-base font-semibold">
-                  {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
-                </h3>
+        {/* Patient Details Summary */}
+        <Card className="mb-3" data-testid="patient-summary">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg text-foreground">{patient.name}</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {patient.sex} • {patient.age} years old • {patient.department || "General Medicine"}
+                </p>
               </div>
-              <Dialog open={showSummaryDialog} onOpenChange={setShowSummaryDialog}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid="button-view-summary">
-                    <FileText className="h-4 w-4 mr-2" />
-                    View Summary
+              <div className="flex items-center space-x-2">
+                <span className={cn(
+                  "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
+                  patient.status === "active" && "bg-green-100 text-green-800",
+                  patient.status === "discharged" && "bg-gray-100 text-gray-800",
+                  patient.status === "transferred" && "bg-blue-100 text-blue-800"
+                )}>
+                  {patient.status}
+                </span>
+                {!isEditingPatient && (
+                  <Button onClick={handleEditPatient} size="sm">
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Edit Patient Info
                   </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Patient Summary - {patient.name}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                )}
+                {isEditingPatient && (
+                  <div className="flex space-x-2">
+                    <Button onClick={handleSavePatient} disabled={updatePatientMutation.isPending} size="sm">
+                      <Check className="h-4 w-4 mr-2" />
+                      Save
+                    </Button>
+                    <Button onClick={handleCancelEditPatient} variant="ghost" size="sm">
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Hospital ID</Label>
                 {isEditingPatient ? (
