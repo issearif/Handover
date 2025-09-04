@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown, FileText } from "lucide-react";
+import { Edit2, Check, X, ArrowLeft, Trash2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { Patient, DailyProgress, HandoverTasks } from "@shared/schema";
 import {
   AlertDialog,
@@ -444,43 +444,43 @@ export default function PatientDetail() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Patient Details Summary */}
+        {/* Collapsible Patient Summary */}
         <Card className="mb-3" data-testid="patient-summary">
-          <CardHeader className="pb-2">
-            <div className="flex justify-between items-start">
+          <CardContent className="p-4">
+            <div 
+              className="flex justify-between items-center cursor-pointer"
+              onClick={() => setIsPatientDetailsExpanded(!isPatientDetailsExpanded)}
+              data-testid="patient-summary-toggle"
+            >
               <div>
-                <CardTitle className="text-lg text-foreground">{patient.name}</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {patient.sex} • {patient.age} years old • {patient.department || "General Medicine"}
-                </p>
+                <h3 className="text-lg font-semibold text-foreground">
+                  {patient.name} ({patient.age}{patient.sex}) - {patient.diagnosis}
+                </h3>
               </div>
               <div className="flex items-center space-x-2">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  Active
-                </span>
-                {!isEditingPatient && (
-                  <Button onClick={handleEditPatient} size="sm">
-                    <Edit2 className="h-4 w-4 mr-2" />
-                    Edit Patient Info
+                {!isPatientDetailsExpanded && !isEditingPatient && (
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditPatient();
+                    }}
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <Edit2 className="h-4 w-4" />
                   </Button>
                 )}
-                {isEditingPatient && (
-                  <div className="flex space-x-2">
-                    <Button onClick={handleSavePatient} disabled={updatePatientMutation.isPending} size="sm">
-                      <Check className="h-4 w-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button onClick={handleCancelEditPatient} variant="ghost" size="sm">
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                  </div>
+                {isPatientDetailsExpanded ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
                 )}
               </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+            
+            {isPatientDetailsExpanded && (
+              <div className="mt-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Hospital ID</Label>
                 {isEditingPatient ? (
@@ -629,7 +629,24 @@ export default function PatientDetail() {
                   <p className="text-sm">{patient.historyOfPresentIllness || "No history of present illness recorded"}</p>
                 )}
               </div>
-            </div>
+                </div>
+                
+                {isEditingPatient && (
+                  <div className="flex justify-end mt-4">
+                    <div className="flex space-x-2">
+                      <Button onClick={handleSavePatient} disabled={updatePatientMutation.isPending} size="sm">
+                        <Check className="h-4 w-4 mr-2" />
+                        Save
+                      </Button>
+                      <Button onClick={handleCancelEditPatient} variant="ghost" size="sm">
+                        <X className="h-4 w-4 mr-2" />
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
