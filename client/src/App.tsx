@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "@/pages/dashboard";
 import Archive from "@/pages/archive";
+import Overview from "@/pages/overview";
 import PatientDetail from "@/pages/patient-detail";
 import DischargeSummary from "@/pages/discharge-summary";
 import AuthPage from "@/pages/AuthPage";
@@ -22,6 +23,7 @@ function Router() {
         <>
           <Route path="/" component={Dashboard} />
           <Route path="/archive" component={Archive} />
+          <Route path="/overview" component={Overview} />
           <Route path="/patient/:id" component={PatientDetail} />
           <Route path="/discharge-summary/:patientId" component={DischargeSummary} />
         </>
