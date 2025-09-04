@@ -209,16 +209,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create handover tasks
+  // Create or update handover tasks
   app.post("/api/patients/:id/handover", isAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;
-      const handoverData = { ...req.body, patientId: id };
-      const handover = await storage.createHandoverTasks(handoverData);
-      res.status(201).json(handover);
+      const { date, tasks, assignedShift } = req.body;
+      
+      // Check if handover already exists for this date
+      const existingHandovers = await storage.getHandoverTasks(id, date);
+      
+      if (existingHandovers.length > 0) {
+        // Update the latest handover for this date
+        const latestHandover = existingHandovers[existingHandovers.length - 1];
+        const updatedHandover = await storage.updateHandoverTasks(latestHandover.id, { tasks });
+        res.json(updatedHandover);
+      } else {
+        // Create new handover
+        const handoverData = { patientId: id, date, tasks, assignedShift };
+        const handover = await storage.createHandoverTasks(handoverData);
+        res.status(201).json(handover);
+      }
     } catch (error) {
-      console.error("Error creating handover tasks:", error);
-      res.status(500).json({ error: "Failed to create handover tasks" });
+      console.error("Error creating/updating handover tasks:", error);
+      res.status(500).json({ error: "Failed to create/update handover tasks" });
     }
   });
 
