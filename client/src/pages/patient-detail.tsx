@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -44,6 +44,7 @@ export default function PatientDetail() {
   const [isPatientDetailsExpanded, setIsPatientDetailsExpanded] = useState(false);
   const [handoverTasks, setHandoverTasks] = useState("");
   const [showSummaryDialog, setShowSummaryDialog] = useState(false);
+  const handoverDataLoaded = useRef(false);
 
   const {
     data: patient,
@@ -70,11 +71,18 @@ export default function PatientDetail() {
     enabled: !!params?.id,
   });
 
-  // Load existing handover data into textarea
+  // Reset handover data loaded flag when patient changes
   useEffect(() => {
-    if (handoverData && handoverData.length > 0) {
+    handoverDataLoaded.current = false;
+    setHandoverTasks("");
+  }, [params?.id]);
+
+  // Load existing handover data into textarea only initially
+  useEffect(() => {
+    if (handoverData && handoverData.length > 0 && !handoverDataLoaded.current) {
       const latestHandover = handoverData[handoverData.length - 1];
       setHandoverTasks(latestHandover.tasks || "");
+      handoverDataLoaded.current = true;
     }
   }, [handoverData]);
 
