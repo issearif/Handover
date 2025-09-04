@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -69,6 +69,14 @@ export default function PatientDetail() {
     queryKey: ["/api/patients", params?.id, "handover"],
     enabled: !!params?.id,
   });
+
+  // Load existing handover data into textarea
+  useEffect(() => {
+    if (handoverData && handoverData.length > 0) {
+      const latestHandover = handoverData[handoverData.length - 1];
+      setHandoverTasks(latestHandover.tasks || "");
+    }
+  }, [handoverData]);
 
   const addProgressMutation = useMutation({
     mutationFn: async (progressData: { patientId: string; date: string; notes: string }) => {
@@ -184,7 +192,6 @@ export default function PatientDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
-      setHandoverTasks("");
       toast({
         title: "Handover tasks added",
         description: "Tasks have been assigned to next shift successfully.",
