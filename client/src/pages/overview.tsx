@@ -8,7 +8,7 @@ import { Printer, ArrowLeft, Edit2, Check, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Overview() {
   const { data: patients = [], isLoading } = useQuery<Patient[]>({
@@ -20,6 +20,30 @@ export default function Overview() {
   const [handoverValues, setHandoverValues] = useState<{[key: string]: string}>({});
   const [editingPatient, setEditingPatient] = useState<string | null>(null);
   const [editedValues, setEditedValues] = useState<{[key: string]: Partial<Patient>}>({});
+
+  // Load handover data for all patients
+  useEffect(() => {
+    if (patients.length > 0) {
+      patients.forEach(async (patient) => {
+        try {
+          const maldivesDate = new Date().toLocaleDateString("sv-SE", { timeZone: "Indian/Maldives" });
+          const response = await fetch(`/api/patients/${patient.id}/handover?date=${maldivesDate}`);
+          if (response.ok) {
+            const handoverData: HandoverTasks[] = await response.json();
+            if (handoverData.length > 0) {
+              const latestHandover = handoverData[handoverData.length - 1];
+              setHandoverValues(prev => ({
+                ...prev,
+                [patient.id]: latestHandover.tasks || ""
+              }));
+            }
+          }
+        } catch (error) {
+          console.error(`Error loading handover for patient ${patient.id}:`, error);
+        }
+      });
+    }
+  }, [patients]);
 
   // Helper function to get handover for a patient
   const getHandoverForPatient = (patientId: string) => {
@@ -56,9 +80,15 @@ export default function Overview() {
         } 
       });
     },
-    onSuccess: () => {
+    onSuccess: (_, { patientId, tasks }) => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients", patientId, "handover"] });
       setEditingHandover(null);
+      // Update local state immediately for smooth UX
+      setHandoverValues(prev => ({
+        ...prev,
+        [patientId]: tasks
+      }));
       toast({ title: "Success", description: "Handover updated successfully." });
     },
     onError: (error: any) => {

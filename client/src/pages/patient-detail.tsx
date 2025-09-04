@@ -119,6 +119,7 @@ export default function PatientDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       setIsEditingPatient(false);
       setEditedPatient({});
       toast({
@@ -182,6 +183,7 @@ export default function PatientDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       setHandoverTasks("");
       toast({
         title: "Handover tasks added",
@@ -203,6 +205,7 @@ export default function PatientDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       toast({
         title: "Handover tasks updated",
         description: "Tasks have been updated successfully.",
@@ -223,6 +226,7 @@ export default function PatientDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/patients", params?.id, "handover"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/patients"] });
       toast({
         title: "Handover tasks deleted",
         description: "Tasks have been removed successfully.",
@@ -688,9 +692,7 @@ export default function PatientDetail() {
             
             <div className="flex space-x-2">
               <Button
-                onClick={() => {
-                  toast({ title: "Saved", description: "Handover notes saved successfully." });
-                }}
+                onClick={handleAddHandover}
                 size="sm"
                 data-testid="button-save-handover"
               >
