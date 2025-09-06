@@ -81,18 +81,20 @@ export default function Header() {
                 <Button 
                   onClick={async () => {
                     try {
-                      const token = localStorage.getItem("auth_token");
+                      const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
                       if (token) {
                         await fetch('/api/logout', { 
                           method: 'POST',
                           headers: { "Authorization": `Bearer ${token}` }
                         });
                       }
-                      localStorage.removeItem("auth_token");
+                      localStorage.removeItem("authToken");
+                      sessionStorage.removeItem("authToken");
                       window.location.reload();
                     } catch (error) {
                       console.error('Logout failed:', error);
-                      localStorage.removeItem("auth_token");
+                      localStorage.removeItem("authToken");
+                      sessionStorage.removeItem("authToken");
                       window.location.reload();
                     }
                   }}
