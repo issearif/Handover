@@ -139,9 +139,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add daily progress for a patient (protected)
   app.post("/api/patients/:id/progress", isAuthenticated, async (req, res) => {
     try {
+      const userId = (req as any).user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: "User authentication required" });
+      }
+      
       const validatedData = insertDailyProgressSchema.parse({
         ...req.body,
-        patientId: req.params.id
+        patientId: req.params.id,
+        authorId: userId
       });
       const progress = await storage.createDailyProgress(validatedData);
       res.status(201).json(progress);

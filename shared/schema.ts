@@ -96,6 +96,7 @@ export type InsertAuthToken = typeof authTokens.$inferInsert;
 export const dailyProgress = pgTable("daily_progress", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   patientId: varchar("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  authorId: varchar("author_id").notNull().references(() => users.id),
   date: text("date").notNull(), // YYYY-MM-DD format
   notes: text("notes").notNull(),
   createdAt: timestamp("created_at").defaultNow(),

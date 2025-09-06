@@ -2,6 +2,7 @@ import { type Patient, type InsertPatient, type UpdatePatient, type User, type I
 import { randomUUID } from "crypto";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 export interface IStorage {
   getPatients(): Promise<Patient[]>;
@@ -19,7 +20,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   // Daily progress operations
-  getDailyProgress(patientId: string): Promise<DailyProgress[]>;
+  getDailyProgress(patientId: string): Promise<(DailyProgress & { authorName?: string })[]>;
   createDailyProgress(progress: InsertDailyProgress): Promise<DailyProgress>;
   updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined>;
   deleteDailyProgress(id: string): Promise<boolean>;
@@ -193,10 +194,19 @@ export class MemStorage implements IStorage {
     }
   }
 
-  async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
-    return Array.from(this.dailyProgressEntries.values())
+  async getDailyProgress(patientId: string): Promise<(DailyProgress & { authorName?: string })[]> {
+    const entries = Array.from(this.dailyProgressEntries.values())
       .filter(progress => progress.patientId === patientId)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    // Add author names for memory storage
+    return entries.map(entry => {
+      const author = this.users.get(entry.authorId);
+      return {
+        ...entry,
+        authorName: author?.firstName || author?.username || 'Unknown'
+      };
+    });
   }
 
   async createDailyProgress(progressData: InsertDailyProgress): Promise<DailyProgress> {
@@ -380,13 +390,27 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getDailyProgress(patientId: string): Promise<DailyProgress[]> {
+  async getDailyProgress(patientId: string): Promise<(DailyProgress & { authorName?: string })[]> {
     const progress = await db
-      .select()
+      .select({
+        id: dailyProgress.id,
+        patientId: dailyProgress.patientId,
+        authorId: dailyProgress.authorId,
+        date: dailyProgress.date,
+        notes: dailyProgress.notes,
+        createdAt: dailyProgress.createdAt,
+        updatedAt: dailyProgress.updatedAt,
+        authorName: users.firstName
+      })
       .from(dailyProgress)
+      .leftJoin(users, eq(dailyProgress.authorId, users.id))
       .where(eq(dailyProgress.patientId, patientId))
       .orderBy(dailyProgress.date);
-    return progress;
+    
+    return progress.map(p => ({
+      ...p,
+      authorName: p.authorName || 'Unknown'
+    }));
   }
 
   async createDailyProgress(progressData: InsertDailyProgress): Promise<DailyProgress> {

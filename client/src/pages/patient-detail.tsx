@@ -761,6 +761,11 @@ export default function PatientDetail() {
                           day: "numeric",
                           timeZone: "Indian/Maldives"
                         })}
+                        {(entry as any).authorName && (
+                          <span className="ml-2 text-xs">
+                            ({(entry as any).authorName})
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground">
                         {entry.createdAt && new Date(entry.createdAt).toLocaleString("en-US", {
