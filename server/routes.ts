@@ -220,6 +220,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const { date, tasks, assignedShift } = req.body;
+      const userId = (req as any).user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User authentication required" });
+      }
       
       // Check if handover already exists for this date
       const existingHandovers = await storage.getHandoverTasks(id, date);
@@ -231,7 +236,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.json(updatedHandover);
       } else {
         // Create new handover
-        const handoverData = { patientId: id, date, tasks, assignedShift };
+        const handoverData = { patientId: id, assignedBy: userId, date, tasks, assignedShift };
         const handover = await storage.createHandoverTasks(handoverData);
         res.status(201).json(handover);
       }

@@ -127,6 +127,7 @@ export type DailyProgress = typeof dailyProgress.$inferSelect;
 export const handoverTasks = pgTable("handover_tasks", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   patientId: varchar("patient_id").notNull().references(() => patients.id, { onDelete: "cascade" }),
+  assignedBy: varchar("assigned_by").notNull().references(() => users.id),
   date: text("date").notNull(), // YYYY-MM-DD format - date for which handover is being done
   tasks: text("tasks").notNull(), // Tasks to be completed by next shift
   status: text("status").default("pending"), // pending, completed

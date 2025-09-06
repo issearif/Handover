@@ -714,24 +714,32 @@ export default function PatientDetail() {
               data-testid="textarea-handover-tasks"
             />
             
-            <div className="flex space-x-2">
-              <Button
-                onClick={handleAddHandover}
-                size="sm"
-                data-testid="button-save-handover"
-              >
-                <Check className="h-4 w-4" />
-              </Button>
-              <Button
-                onClick={() => {
-                  setHandoverTasks("");
-                }}
-                variant="ghost"
-                size="sm"
-                data-testid="button-clear-handover"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <div className="flex justify-between items-center">
+              <div className="flex space-x-2">
+                <Button
+                  onClick={handleAddHandover}
+                  size="sm"
+                  data-testid="button-save-handover"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setHandoverTasks("");
+                  }}
+                  variant="ghost"
+                  size="sm"
+                  data-testid="button-clear-handover"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {handoverData && handoverData.length > 0 && (
+                <div className="text-xs text-muted-foreground">
+                  assigned by {(handoverData[handoverData.length - 1] as any)?.assigneeName || 'Unknown'}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

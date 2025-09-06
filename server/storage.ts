@@ -25,7 +25,7 @@ export interface IStorage {
   updateDailyProgress(id: string, updates: { notes: string }): Promise<DailyProgress | undefined>;
   deleteDailyProgress(id: string): Promise<boolean>;
   // Handover tasks operations
-  getHandoverTasks(patientId: string, date?: string): Promise<HandoverTasks[]>;
+  getHandoverTasks(patientId: string, date?: string): Promise<(HandoverTasks & { assigneeName?: string })[]>;
   createHandoverTasks(handover: InsertHandoverTasks): Promise<HandoverTasks>;
   updateHandoverTasks(id: string, updates: { tasks?: string; status?: string }): Promise<HandoverTasks | undefined>;
   deleteHandoverTasks(id: string): Promise<boolean>;
@@ -241,13 +241,23 @@ export class MemStorage implements IStorage {
   }
 
   // Handover tasks operations
-  async getHandoverTasks(patientId: string, date?: string): Promise<HandoverTasks[]> {
+  async getHandoverTasks(patientId: string, date?: string): Promise<(HandoverTasks & { assigneeName?: string })[]> {
     const allHandovers = Array.from(this.handoverTasksEntries.values());
     let filtered = allHandovers.filter(h => h.patientId === patientId);
     if (date) {
       filtered = filtered.filter(h => h.date === date);
     }
-    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    // Add assignee names for memory storage
+    return filtered
+      .map(handover => {
+        const assignee = this.users.get(handover.assignedBy);
+        return {
+          ...handover,
+          assigneeName: assignee?.firstName || assignee?.username || 'Unknown'
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async createHandoverTasks(insertHandover: InsertHandoverTasks): Promise<HandoverTasks> {
@@ -439,15 +449,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Handover tasks operations
-  async getHandoverTasks(patientId: string, date?: string): Promise<HandoverTasks[]> {
-    let query = db.select().from(handoverTasks).where(eq(handoverTasks.patientId, patientId));
-    const result = await query;
+  async getHandoverTasks(patientId: string, date?: string): Promise<(HandoverTasks & { assigneeName?: string })[]> {
+    const handovers = await db
+      .select({
+        id: handoverTasks.id,
+        patientId: handoverTasks.patientId,
+        assignedBy: handoverTasks.assignedBy,
+        date: handoverTasks.date,
+        tasks: handoverTasks.tasks,
+        status: handoverTasks.status,
+        assignedShift: handoverTasks.assignedShift,
+        createdAt: handoverTasks.createdAt,
+        updatedAt: handoverTasks.updatedAt,
+        assigneeName: users.firstName
+      })
+      .from(handoverTasks)
+      .leftJoin(users, eq(handoverTasks.assignedBy, users.id))
+      .where(eq(handoverTasks.patientId, patientId));
     
-    let filtered = result;
+    let filtered = handovers;
     if (date) {
-      filtered = result.filter(h => h.date === date);
+      filtered = handovers.filter(h => h.date === date);
     }
-    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    return filtered
+      .map(h => ({
+        ...h,
+        assigneeName: h.assigneeName || 'Unknown'
+      }))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async createHandoverTasks(insertHandover: InsertHandoverTasks): Promise<HandoverTasks> {
