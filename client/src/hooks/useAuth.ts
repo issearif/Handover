@@ -5,7 +5,7 @@ export function useAuth() {
   const { data: user, isLoading } = useQuery({
     queryKey: ["/api/auth/user"],
     queryFn: async () => {
-      const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
       if (!token) return null;
       
       try {
@@ -17,6 +17,7 @@ export function useAuth() {
       } catch (error: any) {
         if (error.message?.includes("401")) {
           localStorage.removeItem("authToken");
+          sessionStorage.removeItem("authToken");
           return null;
         }
         throw error;
@@ -27,6 +28,7 @@ export function useAuth() {
 
   const logout = () => {
     localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
     window.location.reload();
   };
 

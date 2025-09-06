@@ -7,6 +7,10 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+function getAuthToken(): string | null {
+  return localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+}
+
 export async function apiRequest(
   url: string,
   options?: {
@@ -15,7 +19,7 @@ export async function apiRequest(
     headers?: Record<string, string>;
   }
 ): Promise<any> {
-  const token = localStorage.getItem("authToken");
+  const token = getAuthToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...options?.headers,
@@ -42,7 +46,7 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const token = localStorage.getItem("authToken");
+    const token = getAuthToken();
     const headers: Record<string, string> = {};
     
     if (token) {

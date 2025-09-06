@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,6 +22,7 @@ interface LoginResponse {
 export function LoginForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const { toast } = useToast();
 
   const loginMutation = useMutation({
@@ -32,8 +34,12 @@ export function LoginForm() {
       return response as LoginResponse;
     },
     onSuccess: (data) => {
-      // Store token in localStorage
-      localStorage.setItem("authToken", data.token);
+      // Store token in localStorage or sessionStorage based on remember me
+      if (rememberMe) {
+        localStorage.setItem("authToken", data.token);
+      } else {
+        sessionStorage.setItem("authToken", data.token);
+      }
       // Reload page to trigger auth state update
       window.location.reload();
     },
@@ -93,6 +99,17 @@ export function LoginForm() {
                 data-testid="input-password"
                 required
               />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="remember-me"
+                checked={rememberMe}
+                onCheckedChange={(checked) => setRememberMe(checked === true)}
+                data-testid="checkbox-remember-me"
+              />
+              <Label htmlFor="remember-me" className="text-sm">
+                Remember me
+              </Label>
             </div>
             <Button 
               type="submit" 
